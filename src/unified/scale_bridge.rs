@@ -369,21 +369,127 @@ pub fn bridge_scale_3(
     })
 }
 
-// ── Scale 4/5 stubs ─────────────────────────────────────────────────────
+// ── Scale 4: Stellar field ──────────────────────────────────────────────
 
-/// bhava Scale 4 bridge stub: stellar influence → soul motivation layers.
+/// Stellar field state — Scale 4 bridge output for bhava/soorat.
 ///
-/// Placeholder returning 0.5 (neutral) until the tara crate is available.
-#[deprecated(note = "stub returning 0.5 — will be replaced when tara v1 is available")]
-#[inline]
-pub fn bridge_scale_4() -> Result<f64, MimamsaError> {
-    Ok(0.5)
+/// Dependency-free: computed from f64 primitives (tara stellar properties).
+/// The caller computes stellar properties with tara, then passes results
+/// through this bridge function.
+///
+/// All scalar fields are normalized ∈ [0, 1].
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct StellarField {
+    /// Lifecycle fraction ∈ [0, 1]. 0 = stellar birth, 1 = end of main sequence.
+    pub lifecycle_fraction: f64,
+    /// Luminosity intensity ∈ [0, 1]. Normalized log-luminosity (0 = 0.01 L_sun, 1 = 1e6 L_sun).
+    pub luminosity_intensity: f64,
+    /// Thermal temperament ∈ [0, 1]. 0 = cool (M-type, ~2400 K), 1 = hot (O-type, ~50000 K).
+    pub thermal_temperament: f64,
+    /// Compositional complexity ∈ [0, 1]. Derived from metallicity [Fe/H].
+    /// 0 = metal-poor ([Fe/H] <= -2), 1 = metal-rich ([Fe/H] >= +0.5).
+    pub compositional_complexity: f64,
+    /// Evolutionary urgency ∈ [0, 1]. Accelerates near end of main sequence.
+    /// Uses τ³ to model increasing urgency as fuel depletes.
+    pub evolutionary_urgency: f64,
+    /// Spectral archetype index (0=O, 1=B, 2=A, 3=F, 4=G, 5=K, 6=M).
+    pub spectral_archetype: u8,
 }
+
+/// Spectral class index from effective temperature.
+///
+/// Maps temperature to OBAFGKM spectral type (0–6).
+fn spectral_archetype_from_temperature(temperature_k: f64) -> u8 {
+    match temperature_k {
+        t if t >= 30000.0 => 0, // O
+        t if t >= 10000.0 => 1, // B
+        t if t >= 7500.0 => 2,  // A
+        t if t >= 6000.0 => 3,  // F
+        t if t >= 5200.0 => 4,  // G
+        t if t >= 3700.0 => 5,  // K
+        _ => 6,                 // M
+    }
+}
+
+/// bhava Scale 4 bridge: stellar influence → soul motivation layers.
+///
+/// Computes the stellar field state from tara f64 primitives.
+/// All inputs are dependency-free — no tara types cross this boundary.
+///
+/// # Arguments
+/// * `temperature_k` — Effective surface temperature (K, from tara `Star::temperature_k`).
+/// * `luminosity_solar` — Luminosity in solar luminosities (from tara `Star::luminosity_solar`).
+/// * `age_years` — Stellar age in years (from tara `Star::age_years`).
+/// * `main_sequence_lifetime_years` — Main-sequence lifetime (from tara `evolution::main_sequence_lifetime`).
+/// * `metallicity_feh` — Metallicity [Fe/H] in dex (from tara `Star::metallicity`, solar = 0.0).
+#[instrument(level = "debug", skip_all)]
+pub fn bridge_scale_4(
+    temperature_k: f64,
+    luminosity_solar: f64,
+    age_years: f64,
+    main_sequence_lifetime_years: f64,
+    metallicity_feh: f64,
+) -> Result<StellarField, MimamsaError> {
+    require_all_finite(
+        &[
+            temperature_k,
+            luminosity_solar,
+            age_years,
+            main_sequence_lifetime_years,
+            metallicity_feh,
+        ],
+        "bridge_scale_4",
+    )?;
+    if temperature_k <= 0.0 || luminosity_solar <= 0.0 || main_sequence_lifetime_years <= 0.0 {
+        warn!(
+            temperature_k,
+            luminosity_solar,
+            main_sequence_lifetime_years,
+            "bridge_scale_4: temperature, luminosity, and lifetime must be positive"
+        );
+        return Err(MimamsaError::Computation(
+            "bridge_scale_4: temperature, luminosity, and lifetime must be positive".to_string(),
+        ));
+    }
+
+    // Lifecycle fraction: age / main-sequence lifetime, clamped to [0, 1]
+    let tau = (age_years / main_sequence_lifetime_years).clamp(0.0, 1.0);
+
+    // Luminosity intensity: log-scale normalization
+    // 0.01 L_sun → 0.0, 1e6 L_sun → 1.0 (8 decades)
+    let log_l = luminosity_solar.max(0.01).log10(); // range: -2 to ~6
+    let luminosity_intensity = ((log_l + 2.0) / 8.0).clamp(0.0, 1.0);
+
+    // Thermal temperament: log-scale temperature normalization
+    // 2400 K (M) → 0.0, 50000 K (O) → 1.0
+    let log_t = temperature_k.log10(); // range: ~3.38 to ~4.7
+    let thermal_temperament =
+        ((log_t - 2400.0_f64.log10()) / (50000.0_f64.log10() - 2400.0_f64.log10())).clamp(0.0, 1.0);
+
+    // Compositional complexity: metallicity normalization
+    // [Fe/H] = -2.0 → 0.0, [Fe/H] = +0.5 → 1.0
+    let compositional_complexity = ((metallicity_feh + 2.0) / 2.5).clamp(0.0, 1.0);
+
+    // Evolutionary urgency: cubic acceleration near end of main sequence
+    let evolutionary_urgency = (tau * tau * tau).clamp(0.0, 1.0);
+
+    let spectral_archetype = spectral_archetype_from_temperature(temperature_k);
+
+    Ok(StellarField {
+        lifecycle_fraction: tau,
+        luminosity_intensity,
+        thermal_temperament,
+        compositional_complexity,
+        evolutionary_urgency,
+        spectral_archetype,
+    })
+}
+
+// ── Scale 5 stub ───────────────────────────────────────────────────────
 
 /// bhava Scale 5 bridge stub: galactic structure → civilizational personality fields.
 ///
 /// Placeholder returning 0.5 (neutral) until large-scale structure data is available.
-#[deprecated(note = "stub returning 0.5 — will be replaced when brahmanda hardens")]
 #[inline]
 pub fn bridge_scale_5() -> Result<f64, MimamsaError> {
     Ok(0.5)
@@ -611,14 +717,72 @@ mod tests {
         let _back: PlanetaryField = serde_json::from_str(&json).unwrap();
     }
 
+    // ── Scale 4 tests ──
+
     #[test]
-    #[allow(deprecated)]
-    fn test_bridge_scale_4_stub() {
-        assert!((bridge_scale_4().unwrap() - 0.5).abs() < 1e-10);
+    fn test_bridge_scale_4_sun() {
+        // Sun: T=5772K, L=1.0, age=4.6e9yr, MS lifetime=~1e10yr, [Fe/H]=0.0
+        let field = bridge_scale_4(5772.0, 1.0, 4.6e9, 1.0e10, 0.0).unwrap();
+        assert!(field.lifecycle_fraction > 0.4 && field.lifecycle_fraction < 0.5);
+        assert!(field.luminosity_intensity > 0.0 && field.luminosity_intensity < 1.0);
+        assert!(field.thermal_temperament > 0.0 && field.thermal_temperament < 1.0);
+        assert!((field.compositional_complexity - 0.8).abs() < 0.01); // [Fe/H]=0.0 → (0+2)/2.5=0.8
+        assert_eq!(field.spectral_archetype, 4); // G-type
     }
 
     #[test]
-    #[allow(deprecated)]
+    fn test_bridge_scale_4_hot_star() {
+        // O-type: T=40000K, L=1e5, young
+        let field = bridge_scale_4(40000.0, 1e5, 1e6, 3e6, -0.5).unwrap();
+        assert!(field.thermal_temperament > 0.9);
+        assert!(field.luminosity_intensity > 0.8);
+        assert_eq!(field.spectral_archetype, 0); // O-type
+    }
+
+    #[test]
+    fn test_bridge_scale_4_cool_star() {
+        // M-type red dwarf: T=3000K, L=0.01, very long lived
+        let field = bridge_scale_4(3000.0, 0.01, 1e9, 1e12, -1.0).unwrap();
+        assert!(field.thermal_temperament < 0.15);
+        assert!(field.luminosity_intensity < 0.01);
+        assert_eq!(field.spectral_archetype, 6); // M-type
+    }
+
+    #[test]
+    fn test_bridge_scale_4_bounds() {
+        let field = bridge_scale_4(5772.0, 1.0, 4.6e9, 1.0e10, 0.0).unwrap();
+        assert!((0.0..=1.0).contains(&field.lifecycle_fraction));
+        assert!((0.0..=1.0).contains(&field.luminosity_intensity));
+        assert!((0.0..=1.0).contains(&field.thermal_temperament));
+        assert!((0.0..=1.0).contains(&field.compositional_complexity));
+        assert!((0.0..=1.0).contains(&field.evolutionary_urgency));
+        assert!(field.spectral_archetype <= 6);
+    }
+
+    #[test]
+    fn test_bridge_scale_4_invalid_rejected() {
+        assert!(bridge_scale_4(-1.0, 1.0, 1e9, 1e10, 0.0).is_err());
+        assert!(bridge_scale_4(5772.0, -1.0, 1e9, 1e10, 0.0).is_err());
+        assert!(bridge_scale_4(5772.0, 1.0, 1e9, -1.0, 0.0).is_err());
+    }
+
+    #[test]
+    fn test_bridge_scale_4_serde() {
+        let field = bridge_scale_4(5772.0, 1.0, 4.6e9, 1.0e10, 0.0).unwrap();
+        let json = serde_json::to_string(&field).unwrap();
+        let _back: StellarField = serde_json::from_str(&json).unwrap();
+    }
+
+    #[test]
+    fn test_bridge_scale_4_evolutionary_urgency() {
+        // Young star: low urgency
+        let young = bridge_scale_4(5772.0, 1.0, 1e8, 1e10, 0.0).unwrap();
+        // Old star: high urgency
+        let old = bridge_scale_4(5772.0, 1.0, 9.5e9, 1e10, 0.0).unwrap();
+        assert!(old.evolutionary_urgency > young.evolutionary_urgency);
+    }
+
+    #[test]
     fn test_bridge_scale_5_stub() {
         assert!((bridge_scale_5().unwrap() - 0.5).abs() < 1e-10);
     }
