@@ -2,13 +2,11 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::metric::{C, G, schwarzschild_radius};
+use super::metric::schwarzschild_radius;
 
-/// Planck's reduced constant ℏ (J·s).
-pub const HBAR: f64 = 1.054_571_817e-34;
-
-/// Boltzmann constant k_B (J/K).
-pub const K_B: f64 = 1.380_649e-23;
+// Re-export from centralized constants for backward compatibility.
+pub use crate::constants::{HBAR, K_B};
+use crate::constants::{C, G};
 
 /// Hawking temperature of a Schwarzschild black hole.
 /// T_H = ℏc³ / (8πGMk_B)

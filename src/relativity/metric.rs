@@ -2,13 +2,12 @@
 
 use serde::{Deserialize, Serialize};
 
+use tracing::warn;
+
 use crate::error::MimamsaError;
 
-/// Gravitational constant G (m³ kg⁻¹ s⁻²).
-pub const G: f64 = 6.674_30e-11;
-
-/// Speed of light (m/s).
-pub const C: f64 = super::lorentz::C;
+// Re-export from centralized constants for backward compatibility.
+pub use crate::constants::{C, G};
 
 /// Schwarzschild radius: r_s = 2GM/c².
 #[must_use]
@@ -23,6 +22,7 @@ pub fn schwarzschild_radius(mass_kg: f64) -> f64 {
 pub fn gravitational_time_dilation(mass_kg: f64, r: f64) -> Result<f64, MimamsaError> {
     let rs = schwarzschild_radius(mass_kg);
     if r <= rs {
+        warn!(r, rs, "time dilation requested inside event horizon");
         return Err(MimamsaError::Singularity {
             location: format!("r={r:.3e}"),
             detail: format!("inside event horizon (r_s={rs:.3e})"),
@@ -56,6 +56,7 @@ pub fn photon_sphere_radius(mass_kg: f64) -> f64 {
 pub fn schwarzschild_orbital_velocity(mass_kg: f64, r: f64) -> Result<f64, MimamsaError> {
     let rs = schwarzschild_radius(mass_kg);
     if r <= rs {
+        warn!(r, rs, "orbital velocity requested inside event horizon");
         return Err(MimamsaError::Singularity {
             location: format!("r={r:.3e}"),
             detail: "inside event horizon".to_string(),

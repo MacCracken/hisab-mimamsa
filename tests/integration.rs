@@ -1,6 +1,5 @@
 use hisab_mimamsa::relativity::black_hole::*;
 use hisab_mimamsa::relativity::geodesic::*;
-use hisab_mimamsa::relativity::lensing::*;
 use hisab_mimamsa::relativity::lorentz::*;
 use hisab_mimamsa::relativity::metric::*;
 

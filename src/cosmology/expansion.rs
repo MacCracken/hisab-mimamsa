@@ -6,7 +6,7 @@ use super::friedmann::{CosmologicalParameters, MPC_IN_KM, hubble_parameter};
 /// d_C = c ∫₀ᶻ dz'/H(z')
 #[must_use]
 pub fn comoving_distance(params: &CosmologicalParameters, z: f64, n: usize) -> f64 {
-    let c = crate::relativity::lorentz::C;
+    let c = crate::constants::C;
     let dz = z / n as f64;
     let mut integral = 0.0;
 
@@ -55,7 +55,7 @@ pub fn lookback_time(params: &CosmologicalParameters, z: f64, n: usize) -> f64 {
 #[must_use]
 #[inline]
 pub fn hubble_distance(params: &CosmologicalParameters) -> f64 {
-    let c = crate::relativity::lorentz::C;
+    let c = crate::constants::C;
     let h0_si = params.h0 / MPC_IN_KM;
     c / h0_si
 }
@@ -88,6 +88,8 @@ mod tests {
 
     const GYR_S: f64 = 365.25 * 24.0 * 3600.0 * 1e9;
     const MPC_M: f64 = 3.085_677_581e22;
+    /// 1 Gpc in meters (1 Gpc = 1e3 Mpc).
+    const GPC_M: f64 = 1e3 * MPC_M;
 
     #[test]
     fn test_scale_factor_now() {
@@ -117,7 +119,7 @@ mod tests {
     fn test_comoving_distance_z1() {
         let params = CosmologicalParameters::planck2018();
         let d = comoving_distance(&params, 1.0, 1000);
-        let d_gpc = d / (1e9 * MPC_M);
+        let d_gpc = d / (GPC_M);
         // z=1: ~3.3 Gpc comoving
         assert!(d_gpc > 3.0 && d_gpc < 3.6);
     }
@@ -137,7 +139,7 @@ mod tests {
     fn test_hubble_distance() {
         let params = CosmologicalParameters::planck2018();
         let dh = hubble_distance(&params);
-        let dh_gpc = dh / (1e9 * MPC_M);
+        let dh_gpc = dh / (GPC_M);
         // d_H ≈ 4.4 Gpc
         assert!(dh_gpc > 4.0 && dh_gpc < 5.0);
     }

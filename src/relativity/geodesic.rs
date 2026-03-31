@@ -64,15 +64,17 @@ pub fn schwarzschild_effective_potential(
 #[must_use]
 #[inline]
 pub fn light_deflection_weak_field(mass_kg: f64, impact_parameter: f64) -> f64 {
-    4.0 * super::metric::G * mass_kg / (impact_parameter * super::lorentz::C * super::lorentz::C)
+    use crate::constants::{C, G};
+    4.0 * G * mass_kg / (impact_parameter * C * C)
 }
 
 /// Shapiro time delay for signal passing mass M.
 /// Δt ≈ (4GM/c³) * ln(4r₁r₂/b²) where r₁,r₂ are emitter/receiver distances.
 #[must_use]
 pub fn shapiro_delay(mass_kg: f64, r1: f64, r2: f64, impact_parameter: f64) -> f64 {
-    let c3 = super::lorentz::C.powi(3);
-    let prefactor = 4.0 * super::metric::G * mass_kg / c3;
+    use crate::constants::{C, G};
+    let c3 = C.powi(3);
+    let prefactor = 4.0 * G * mass_kg / c3;
     prefactor * (4.0 * r1 * r2 / (impact_parameter * impact_parameter)).ln()
 }
 

@@ -47,6 +47,7 @@
 //! at heat death / maximum entropy, all fields converge to ground state,
 //! all manifestation intensity → 0.0, all bridge outputs → identity element.
 
+pub mod constants;
 pub mod error;
 pub mod relativity;
 

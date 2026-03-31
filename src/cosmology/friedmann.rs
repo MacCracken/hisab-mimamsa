@@ -2,8 +2,6 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::error::MimamsaError;
-
 /// Hubble constant H₀ (km/s/Mpc → s⁻¹ for internal use).
 pub const H0_KM_S_MPC: f64 = 67.4; // Planck 2018
 pub const MPC_IN_KM: f64 = 3.085_677_581e19;
@@ -29,12 +27,16 @@ impl CosmologicalParameters {
     /// Planck 2018 ΛCDM best fit.
     #[must_use]
     pub fn planck2018() -> Self {
+        let omega_m = 0.315;
+        let omega_r = 9.15e-5;
+        // Derive Ω_Λ so density parameters sum exactly to 1 (flat universe).
+        let omega_lambda = 1.0 - omega_m - omega_r;
         Self {
             h0: 67.4,
-            omega_m: 0.315,
-            omega_r: 9.15e-5,
-            omega_lambda: 0.685,
-            omega_k: 0.0, // flat universe
+            omega_m,
+            omega_r,
+            omega_lambda,
+            omega_k: 0.0,
         }
     }
 
@@ -71,7 +73,7 @@ pub fn hubble_parameter(params: &CosmologicalParameters, z: f64) -> f64 {
 #[must_use]
 #[inline]
 pub fn critical_density(h: f64) -> f64 {
-    3.0 * h * h / (8.0 * std::f64::consts::PI * super::super::relativity::metric::G)
+    3.0 * h * h / (8.0 * std::f64::consts::PI * crate::constants::G)
 }
 
 /// Deceleration parameter q(z) = -1 - Ḣ/H².

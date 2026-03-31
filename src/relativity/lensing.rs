@@ -1,22 +1,31 @@
 //! Gravitational lensing — Einstein rings, magnification, image distortion.
 
-use super::metric::{C, G};
+use tracing::warn;
+
+use crate::constants::{C, G};
+use crate::error::MimamsaError;
 
 /// Einstein ring angular radius (radians).
 /// θ_E = √(4GM * D_ls / (c² * D_l * D_s))
 /// where D_l = lens distance, D_s = source distance, D_ls = lens-source distance.
-#[must_use]
 #[inline]
-pub fn einstein_ring_radius(mass_kg: f64, d_lens: f64, d_source: f64) -> f64 {
+pub fn einstein_ring_radius(
+    mass_kg: f64,
+    d_lens: f64,
+    d_source: f64,
+) -> Result<f64, MimamsaError> {
     let d_ls = d_source - d_lens;
-    if d_ls <= 0.0 || d_lens <= 0.0 || d_source <= 0.0 {
-        return 0.0;
+    if d_lens <= 0.0 || d_source <= 0.0 || d_ls <= 0.0 {
+        warn!(d_lens, d_source, d_ls, "invalid lensing geometry for Einstein ring");
+        return Err(MimamsaError::Computation(format!(
+            "invalid lensing geometry: d_lens={d_lens:.3e}, d_source={d_source:.3e}"
+        )));
     }
-    (4.0 * G * mass_kg * d_ls / (C * C * d_lens * d_source)).sqrt()
+    Ok((4.0 * G * mass_kg * d_ls / (C * C * d_lens * d_source)).sqrt())
 }
 
 /// Point-source magnification for a point lens.
-/// μ = u² + 2 / (u * √(u² + 4))
+/// μ = (u² + 2) / (u * √(u² + 4))
 /// where u = angular separation / θ_E.
 #[must_use]
 #[inline]
@@ -30,11 +39,19 @@ pub fn point_lens_magnification(u: f64) -> f64 {
 
 /// Critical surface density for lensing (kg/m²).
 /// Σ_cr = c²D_s / (4πGD_lD_ls)
-#[must_use]
 #[inline]
-pub fn critical_surface_density(d_lens: f64, d_source: f64) -> f64 {
+pub fn critical_surface_density(
+    d_lens: f64,
+    d_source: f64,
+) -> Result<f64, MimamsaError> {
     let d_ls = d_source - d_lens;
-    C * C * d_source / (4.0 * std::f64::consts::PI * G * d_lens * d_ls)
+    if d_lens <= 0.0 || d_source <= 0.0 || d_ls <= 0.0 {
+        warn!(d_lens, d_source, d_ls, "invalid lensing geometry for critical density");
+        return Err(MimamsaError::Computation(format!(
+            "invalid lensing geometry: d_lens={d_lens:.3e}, d_source={d_source:.3e}"
+        )));
+    }
+    Ok(C * C * d_source / (4.0 * std::f64::consts::PI * G * d_lens * d_ls))
 }
 
 #[cfg(test)]
@@ -46,8 +63,16 @@ mod tests {
 
     #[test]
     fn test_einstein_ring_positive() {
-        let theta = einstein_ring_radius(M_SUN, 10.0 * KPC, 20.0 * KPC);
+        let theta = einstein_ring_radius(M_SUN, 10.0 * KPC, 20.0 * KPC).unwrap();
         assert!(theta > 0.0);
+    }
+
+    #[test]
+    fn test_einstein_ring_invalid_geometry() {
+        // Source behind lens → error
+        assert!(einstein_ring_radius(M_SUN, 20.0 * KPC, 10.0 * KPC).is_err());
+        // Negative distance → error
+        assert!(einstein_ring_radius(M_SUN, -1.0, 20.0 * KPC).is_err());
     }
 
     #[test]
@@ -66,7 +91,12 @@ mod tests {
 
     #[test]
     fn test_critical_density_positive() {
-        let sigma = critical_surface_density(10.0 * KPC, 20.0 * KPC);
+        let sigma = critical_surface_density(10.0 * KPC, 20.0 * KPC).unwrap();
         assert!(sigma > 0.0);
+    }
+
+    #[test]
+    fn test_critical_density_invalid_geometry() {
+        assert!(critical_surface_density(20.0 * KPC, 10.0 * KPC).is_err());
     }
 }

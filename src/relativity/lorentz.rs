@@ -1,14 +1,12 @@
 //! Special relativity — Lorentz transformations, four-vectors, invariants.
 
 use serde::{Deserialize, Serialize};
+use tracing::warn;
 
 use crate::error::MimamsaError;
 
-/// Speed of light in vacuum (m/s).
-pub const C: f64 = 299_792_458.0;
-
-/// Speed of light squared.
-pub const C2: f64 = C * C;
+// Re-export from centralized constants for backward compatibility.
+pub use crate::constants::{C, C2};
 
 /// Lorentz factor γ = 1/√(1 - v²/c²).
 ///
@@ -18,6 +16,7 @@ pub fn lorentz_factor(v: f64) -> Result<f64, MimamsaError> {
     let beta = v / C;
     let beta2 = beta * beta;
     if beta2 >= 1.0 {
+        warn!(v, beta = beta, "superluminal velocity rejected");
         return Err(MimamsaError::Superluminal { v });
     }
     Ok(1.0 / (1.0 - beta2).sqrt())
@@ -81,6 +80,7 @@ pub fn velocity_addition(u: f64, v: f64) -> f64 {
 pub fn doppler_factor(v: f64) -> Result<f64, MimamsaError> {
     let b = beta(v);
     if b.abs() >= 1.0 {
+        warn!(v, beta = b, "superluminal velocity in Doppler calculation");
         return Err(MimamsaError::Superluminal { v });
     }
     Ok(((1.0 - b) / (1.0 + b)).sqrt())
