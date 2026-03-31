@@ -50,6 +50,7 @@ pub fn bekenstein_bound(radius_m: f64, energy_j: f64) -> Result<f64, MimamsaErro
 pub fn holographic_bound(area_m2: f64) -> Result<f64, MimamsaError> {
     require_finite(area_m2, "holographic_bound")?;
     if area_m2 <= 0.0 {
+        warn!(area_m2, "holographic_bound: area must be positive");
         return Err(MimamsaError::Computation(
             "holographic_bound: area must be positive".to_string(),
         ));
@@ -65,6 +66,10 @@ pub fn holographic_bound(area_m2: f64) -> Result<f64, MimamsaError> {
 pub fn information_content_bits(entropy_j_per_k: f64) -> Result<f64, MimamsaError> {
     require_finite(entropy_j_per_k, "information_content_bits")?;
     if entropy_j_per_k < 0.0 {
+        warn!(
+            entropy_j_per_k,
+            "information_content_bits: entropy must be non-negative"
+        );
         return Err(MimamsaError::Computation(
             "information_content_bits: entropy must be non-negative".to_string(),
         ));
@@ -81,6 +86,10 @@ pub fn information_content_bits(entropy_j_per_k: f64) -> Result<f64, MimamsaErro
 pub fn black_hole_information_bits(mass_kg: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_kg, "black_hole_information_bits")?;
     if mass_kg <= 0.0 {
+        warn!(
+            mass_kg,
+            "black_hole_information_bits: mass must be positive"
+        );
         return Err(MimamsaError::Computation(
             "black_hole_information_bits: mass must be positive".to_string(),
         ));

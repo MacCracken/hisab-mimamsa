@@ -102,11 +102,19 @@ pub fn scalar_propagator_position_space(
     require_finite(e_max, "scalar_propagator_position_space")?;
 
     if n_points == 0 || !n_points.is_power_of_two() {
+        warn!(
+            n_points,
+            "scalar_propagator_position_space: n_points must be a positive power of 2"
+        );
         return Err(MimamsaError::Computation(
             "scalar_propagator_position_space: n_points must be a positive power of 2".to_string(),
         ));
     }
     if e_max <= 0.0 {
+        warn!(
+            e_max,
+            "scalar_propagator_position_space: e_max must be positive"
+        );
         return Err(MimamsaError::Computation(
             "scalar_propagator_position_space: e_max must be positive".to_string(),
         ));

@@ -154,6 +154,7 @@ pub fn element_balance(longitudes_deg: &[f64; 10]) -> Result<[f64; 4], MimamsaEr
     }
     let total: f64 = counts.iter().sum();
     if total <= 0.0 {
+        warn!(total, "element_balance: zero total weight");
         return Err(MimamsaError::Computation(
             "element_balance: zero total weight".to_string(),
         ));
@@ -176,6 +177,7 @@ pub fn modality_balance(longitudes_deg: &[f64; 10]) -> Result<[f64; 3], MimamsaE
     }
     let total: f64 = counts.iter().sum();
     if total <= 0.0 {
+        warn!(total, "modality_balance: zero total weight");
         return Err(MimamsaError::Computation(
             "modality_balance: zero total weight".to_string(),
         ));
@@ -268,6 +270,7 @@ pub fn house_emphasis(
 
     let total: f64 = emphasis.iter().sum();
     if total <= 0.0 {
+        warn!(total, "house_emphasis: zero total weight");
         return Err(MimamsaError::Computation(
             "house_emphasis: zero total weight".to_string(),
         ));

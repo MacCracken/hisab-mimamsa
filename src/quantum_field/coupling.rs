@@ -64,6 +64,10 @@ pub fn running_coupling_qed(
     require_finite(mu_0_gev, "running_coupling_qed")?;
     require_finite(mu_gev, "running_coupling_qed")?;
     if alpha_0 <= 0.0 || mu_0_gev <= 0.0 || mu_gev <= 0.0 {
+        warn!(
+            alpha_0,
+            mu_0_gev, mu_gev, "running_coupling_qed: alpha, mu_0, mu must be positive"
+        );
         return Err(MimamsaError::Computation(
             "running_coupling_qed: alpha, mu_0, mu must be positive".to_string(),
         ));
@@ -109,6 +113,10 @@ pub fn running_coupling_qcd(
     require_finite(mu_0_gev, "running_coupling_qcd")?;
     require_finite(mu_gev, "running_coupling_qcd")?;
     if alpha_s_0 <= 0.0 || mu_0_gev <= 0.0 || mu_gev <= 0.0 {
+        warn!(
+            alpha_s_0,
+            mu_0_gev, mu_gev, "running_coupling_qcd: alpha_s, mu_0, mu must be positive"
+        );
         return Err(MimamsaError::Computation(
             "running_coupling_qcd: alpha_s, mu_0, mu must be positive".to_string(),
         ));
@@ -149,6 +157,10 @@ pub fn running_coupling_qed_analytic(
     require_finite(mu_0_gev, "running_coupling_qed_analytic")?;
     require_finite(mu_gev, "running_coupling_qed_analytic")?;
     if alpha_0 <= 0.0 || mu_0_gev <= 0.0 || mu_gev <= 0.0 {
+        warn!(
+            alpha_0,
+            mu_0_gev, mu_gev, "running_coupling_qed_analytic: alpha, mu_0, mu must be positive"
+        );
         return Err(MimamsaError::Computation(
             "running_coupling_qed_analytic: alpha, mu_0, mu must be positive".to_string(),
         ));
@@ -182,6 +194,10 @@ pub fn running_coupling_qcd_analytic(
     require_finite(mu_0_gev, "running_coupling_qcd_analytic")?;
     require_finite(mu_gev, "running_coupling_qcd_analytic")?;
     if alpha_s_0 <= 0.0 || mu_0_gev <= 0.0 || mu_gev <= 0.0 {
+        warn!(
+            alpha_s_0,
+            mu_0_gev, mu_gev, "running_coupling_qcd_analytic: alpha_s, mu_0, mu must be positive"
+        );
         return Err(MimamsaError::Computation(
             "running_coupling_qcd_analytic: alpha_s, mu_0, mu must be positive".to_string(),
         ));

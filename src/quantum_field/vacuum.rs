@@ -5,6 +5,8 @@
 
 use std::f64::consts::PI;
 
+use tracing::warn;
+
 use crate::constants::{C, HBAR};
 use crate::error::{MimamsaError, ensure_finite, require_finite};
 
@@ -15,6 +17,7 @@ use crate::error::{MimamsaError, ensure_finite, require_finite};
 pub fn zero_point_energy(omega: f64) -> Result<f64, MimamsaError> {
     require_finite(omega, "zero_point_energy")?;
     if omega < 0.0 {
+        warn!(omega, "zero_point_energy: omega must be non-negative");
         return Err(MimamsaError::Computation(
             "zero_point_energy: omega must be non-negative".to_string(),
         ));
@@ -30,6 +33,10 @@ pub fn zero_point_energy(omega: f64) -> Result<f64, MimamsaError> {
 pub fn zero_point_energy_sum(box_size_m: f64, n_max: usize) -> Result<f64, MimamsaError> {
     require_finite(box_size_m, "zero_point_energy_sum")?;
     if box_size_m <= 0.0 {
+        warn!(
+            box_size_m,
+            "zero_point_energy_sum: box_size must be positive"
+        );
         return Err(MimamsaError::Computation(
             "zero_point_energy_sum: box_size must be positive".to_string(),
         ));
@@ -54,6 +61,10 @@ pub fn zero_point_energy_sum(box_size_m: f64, n_max: usize) -> Result<f64, Mimam
 pub fn casimir_force_per_area(plate_separation_m: f64) -> Result<f64, MimamsaError> {
     require_finite(plate_separation_m, "casimir_force_per_area")?;
     if plate_separation_m <= 0.0 {
+        warn!(
+            plate_separation_m,
+            "casimir_force_per_area: separation must be positive"
+        );
         return Err(MimamsaError::Computation(
             "casimir_force_per_area: plate separation must be positive".to_string(),
         ));
@@ -69,6 +80,10 @@ pub fn casimir_force_per_area(plate_separation_m: f64) -> Result<f64, MimamsaErr
 pub fn casimir_energy_per_area(plate_separation_m: f64) -> Result<f64, MimamsaError> {
     require_finite(plate_separation_m, "casimir_energy_per_area")?;
     if plate_separation_m <= 0.0 {
+        warn!(
+            plate_separation_m,
+            "casimir_energy_per_area: separation must be positive"
+        );
         return Err(MimamsaError::Computation(
             "casimir_energy_per_area: plate separation must be positive".to_string(),
         ));
@@ -87,6 +102,10 @@ pub fn casimir_energy_per_area(plate_separation_m: f64) -> Result<f64, MimamsaEr
 pub fn regularized_vacuum_energy_density(cutoff_gev: f64) -> Result<f64, MimamsaError> {
     require_finite(cutoff_gev, "regularized_vacuum_energy_density")?;
     if cutoff_gev <= 0.0 {
+        warn!(
+            cutoff_gev,
+            "regularized_vacuum_energy_density: cutoff must be positive"
+        );
         return Err(MimamsaError::Computation(
             "regularized_vacuum_energy_density: cutoff must be positive".to_string(),
         ));
@@ -106,6 +125,10 @@ pub fn vacuum_energy_density_dimreg(mass_gev: f64, mu_gev: f64) -> Result<f64, M
     require_finite(mass_gev, "vacuum_energy_density_dimreg")?;
     require_finite(mu_gev, "vacuum_energy_density_dimreg")?;
     if mass_gev <= 0.0 || mu_gev <= 0.0 {
+        warn!(
+            mass_gev,
+            mu_gev, "vacuum_energy_density_dimreg: mass and scale must be positive"
+        );
         return Err(MimamsaError::Computation(
             "vacuum_energy_density_dimreg: mass and scale must be positive".to_string(),
         ));

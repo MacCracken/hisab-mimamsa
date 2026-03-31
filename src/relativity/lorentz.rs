@@ -112,6 +112,7 @@ impl FourVector {
         const MAX_COMPONENT: f64 = 1.34e154; // √(f64::MAX), prevents overflow in x²
         for &c in &[ct, x, y, z] {
             if c.abs() > MAX_COMPONENT {
+                warn!(ct, x, y, z, "FourVector component magnitude too large");
                 return Err(MimamsaError::Computation(
                     "FourVector component magnitude too large".to_string(),
                 ));

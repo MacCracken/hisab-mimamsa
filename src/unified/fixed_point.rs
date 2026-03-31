@@ -89,6 +89,7 @@ pub fn cosmic_phase(params: &CosmologicalParameters, z: f64) -> Result<CosmicPha
 pub fn entropy_ratio(params: &CosmologicalParameters, z: f64) -> Result<f64, MimamsaError> {
     require_finite(z, "entropy_ratio")?;
     if z < -1.0 {
+        warn!(z, "entropy_ratio: z < -1 is unphysical");
         return Err(MimamsaError::InvalidCosmology(
             "entropy_ratio: z < -1 is unphysical".to_string(),
         ));
@@ -102,6 +103,7 @@ pub fn entropy_ratio(params: &CosmologicalParameters, z: f64) -> Result<f64, Mim
         params.omega_r * z4 + params.omega_m * z3 + params.omega_k * z2 + params.omega_lambda;
 
     if denom <= 0.0 {
+        warn!(denom, "entropy_ratio: density sum non-positive");
         return Err(MimamsaError::Computation(
             "entropy_ratio: density sum non-positive".to_string(),
         ));

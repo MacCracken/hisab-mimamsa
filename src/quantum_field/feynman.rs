@@ -188,6 +188,10 @@ pub fn differential_cross_section_2to2(
         ));
     }
     if s_mandelstam <= 0.0 {
+        warn!(
+            s_mandelstam,
+            "differential_cross_section_2to2: s must be positive"
+        );
         return Err(MimamsaError::Computation(
             "differential_cross_section_2to2: s must be positive".to_string(),
         ));
@@ -215,6 +219,10 @@ pub fn total_cross_section_2to2_massless(
         ));
     }
     if s_mandelstam <= 0.0 {
+        warn!(
+            s_mandelstam,
+            "total_cross_section_2to2_massless: s must be positive"
+        );
         return Err(MimamsaError::Computation(
             "total_cross_section_2to2_massless: s must be positive".to_string(),
         ));

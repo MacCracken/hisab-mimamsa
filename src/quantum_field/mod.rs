@@ -61,6 +61,8 @@ pub mod vacuum;
 
 use serde::{Deserialize, Serialize};
 
+use tracing::warn;
+
 use crate::error::{MimamsaError, ensure_finite, require_all_finite};
 
 /// Classification of quantum fields.
@@ -107,6 +109,7 @@ impl FourMomentum {
         require_all_finite(&[e, px, py, pz], "FourMomentum::new")?;
         for &c in &[e, px, py, pz] {
             if c.abs() > MAX_MOMENTUM_COMPONENT {
+                warn!(e, px, py, pz, "FourMomentum component magnitude too large");
                 return Err(MimamsaError::Computation(
                     "FourMomentum component magnitude too large".to_string(),
                 ));
