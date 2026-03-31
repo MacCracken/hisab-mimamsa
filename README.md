@@ -34,11 +34,13 @@
 
 **Holographic principle** — Bekenstein bound, holographic entropy bound, information content, black hole information bits, cosmological horizon entropy.
 
-**Fixed point convergence** — cosmic phase classification, entropy ratio, manifestation intensity scalar, unity parameter, `FixedPointState` bundle.
+**Fixed point convergence** — cosmic phase classification, entropy ratio, manifestation intensity scalar, unity parameter.
 
-**Scale bridge** — RG running coupling wrappers, bhava Scale 6 (manifestation intensity) and Scale 7 (cosmic breath phase) bridge functions, `BridgeOutput` bundle.
+**Scale bridge** — Scales 3–7 bridge functions for bhava/soorat: planetary field (Scale 3), stellar influence stub (Scale 4), galactic structure stub (Scale 5), manifestation intensity (Scale 6), cosmic breath phase (Scale 7).
 
 ## Quick Start
+
+### Relativity
 
 ```rust
 use hisab_mimamsa::relativity::{lorentz, metric, black_hole};
@@ -48,13 +50,15 @@ let gamma = lorentz::lorentz_factor(0.994 * lorentz::C).unwrap();
 println!("Lorentz factor: {gamma:.2}"); // ~9.14
 
 // General relativity: Schwarzschild radius of the Sun
-let rs = metric::schwarzschild_radius(1.989e30);
+let rs = metric::schwarzschild_radius(1.989e30).unwrap();
 println!("Sun r_s: {rs:.0} m"); // ~2953 m
 
 // Black hole thermodynamics: Hawking temperature
-let t = black_hole::hawking_temperature(1.989e30);
+let t = black_hole::hawking_temperature(1.989e30).unwrap();
 println!("Solar mass BH temp: {t:.2e} K"); // ~6.2e-8 K
 ```
+
+### Cosmology
 
 ```rust
 use hisab_mimamsa::cosmology::{friedmann, expansion};
@@ -62,13 +66,46 @@ use hisab_mimamsa::cosmology::{friedmann, expansion};
 let params = friedmann::CosmologicalParameters::planck2018();
 
 // Age of the universe
-let age_s = friedmann::age_of_universe(&params, 1100.0, 10000);
+let age_s = friedmann::age_of_universe(&params, 1100.0, 10000).unwrap();
 let age_gyr = age_s / (365.25 * 24.0 * 3600.0 * 1e9);
 println!("Age: {age_gyr:.1} Gyr"); // ~13.8 Gyr
 
 // CMB temperature at decoupling (z ≈ 1100)
-let t_cmb = expansion::cmb_temperature(1100.0);
+let t_cmb = expansion::cmb_temperature(1100.0).unwrap();
 println!("CMB at decoupling: {t_cmb:.0} K"); // ~3000 K
+```
+
+### Quantum Field Theory
+
+```rust
+use hisab_mimamsa::quantum_field::{FourMomentum, propagator, coupling};
+use hisab_mimamsa::constants::{ALPHA_S_MZ, M_Z_GEV};
+
+// Scalar propagator near the mass shell
+let p = FourMomentum::new(0.511e-3, 0.0, 0.0, 0.0).unwrap();
+let prop = propagator::scalar_propagator(&p, 0.511e-3, propagator::DEFAULT_EPSILON).unwrap();
+println!("|propagator| = {:.2e}", prop.abs());
+
+// QCD asymptotic freedom: coupling decreases with energy
+let alpha_1tev = coupling::running_coupling_qcd_analytic(ALPHA_S_MZ, M_Z_GEV, 1000.0, 6).unwrap();
+println!("alpha_s(1 TeV) = {alpha_1tev:.4}"); // < alpha_s(M_Z)
+```
+
+### Unified Field / bhava Bridge
+
+```rust
+use hisab_mimamsa::unified::{fixed_point, scale_bridge};
+use hisab_mimamsa::cosmology::friedmann::CosmologicalParameters;
+
+let params = CosmologicalParameters::planck2018();
+
+// Manifestation intensity: how far the universe is from heat death
+let intensity = fixed_point::manifestation_intensity(&params, 0.0).unwrap();
+println!("Manifestation intensity (now): {intensity:.4}"); // ~0.315
+
+// Full bridge output for bhava/soorat
+let bridge = scale_bridge::BridgeOutput::at_redshift(&params, 0.0).unwrap();
+println!("Unity parameter: {:.4}", bridge.unity_param); // ~0.685
 ```
 
 ## Feature Flags
@@ -77,19 +114,19 @@ println!("CMB at decoupling: {t_cmb:.0} K"); // ~3000 K
 |---------|---------|-------------|
 | `std` | yes | Standard library support |
 | `cosmology` | no | Friedmann equations, expansion history, CMB |
-| `qft` | no | Quantum field theory (planned) |
-| `unified` | no | GR+QFT bridge, holographic principle (planned) |
+| `qft` | no | Quantum field theory: propagators, vacuum, couplings, Feynman |
+| `unified` | no | GR+QFT bridge, holographic principle, Scale 3-7 bridges |
 | `full` | no | Enables all features |
 | `logging` | no | `HISAB_MIMAMSA_LOG` env var logging |
 
 ```toml
 [dependencies]
-hisab-mimamsa = { version = "0.1", features = ["cosmology"] }
+hisab-mimamsa = { version = "0.1", features = ["unified"] }
 ```
 
 ## Validated Physics
 
-All implementations use real physics validated against known results:
+All implementations validated against known results:
 
 | Test | Expected | Verified |
 |------|----------|----------|
@@ -103,6 +140,12 @@ All implementations use real physics validated against known results:
 | BH entropy ∝ M² | 2× mass → 4× entropy | confirmed |
 | Lorentz boost preserves interval | Δs² invariant | confirmed |
 | q₀ < 0 (accelerating expansion) | dark energy dominated | confirmed |
+| QED coupling increases with energy | α(1 TeV) > α(M_Z) | confirmed |
+| QCD asymptotic freedom | α_s(1 TeV) < α_s(M_Z) | confirmed |
+| Casimir force at 1 μm | ~1.3e-3 N/m² | confirmed |
+| Mandelstam identity s+t+u = Σm² | for 2→2 scattering | confirmed |
+| Holographic bound = BH entropy | for Schwarzschild BH | confirmed |
+| Entropy ratio(z=0) ≈ Ω_Λ | ~0.685 | confirmed |
 
 ## Relationship to AGNOS Science Stack
 
@@ -111,26 +154,29 @@ hisab (math foundation)
   ├── hisab-mimamsa (this) — theoretical physics
   │     ├── relativity — spacetime, geodesics, black holes
   │     ├── cosmology — Friedmann, CMB, expansion
-  │     ├── quantum_field — QFT (planned)
-  │     └── unified — GR+QFT bridge (planned)
+  │     ├── quantum_field — propagators, vacuum, couplings, Feynman
+  │     └── unified — holographic, fixed point, Scale 3-7 bridges
+  ├── brahmanda — galactic / large-scale structure (Scale 5)
+  ├── tara — stellar astrophysics (Scale 4)
+  ├── jyotish — astronomical computation (Scale 3)
+  ├── falak — orbital mechanics
   ├── kana — quantum mechanics (circuits, states, operators)
-  ├── tanmatra — atomic/subatomic (Standard Model, nuclear, decay)
-  ├── falak — orbital mechanics (Keplerian, transfers)
-  ├── tara — stellar astrophysics (classification, evolution)
-  └── jyotish — astronomical computation (ephemeris, calendar)
+  └── tanmatra — atomic/subatomic (Standard Model, nuclear, decay)
 ```
 
 ## bhava Bridge (consciousness model)
 
-The unified module (v0.3.0) will provide bridge functions for the [bhava](https://crates.io/crates/bhava) personality engine's multi-scale consciousness model:
+The unified module provides bridge functions for [bhava](https://crates.io/crates/bhava) (emotional states) and [soorat](https://crates.io/crates/soorat) (visible world):
 
-- **Scale 3**: Planetary field → personality manifestation (via jyotish)
-- **Scale 4**: Stellar influence → soul motivation layers (via tara)
-- **Scale 5**: Galactic structure → civilizational personality fields
-- **Scale 6**: Cosmic expansion → manifestation intensity scalar
-- **Scale 7**: Cosmic breath phase → unity/differentiation cycle
+- **Scale 3**: Planetary field → personality manifestation (via jyotish) — `PlanetaryField`
+- **Scale 4**: Stellar influence → soul motivation layers (via tara) — stub
+- **Scale 5**: Galactic structure → civilizational personality fields (via brahmanda) — stub
+- **Scale 6**: Cosmic expansion → manifestation intensity scalar — `bridge_scale_6()`
+- **Scale 7**: Cosmic breath phase → unity/differentiation cycle — `bridge_scale_7()`
 
 The fixed point at zero (Unity) emerges from the cosmological model: at maximum entropy, all fields converge to ground state, all manifestation intensity → 0.0.
+
+Bridge functions are dependency-free (f64 primitives only) — see [ADR-003](docs/architecture/adr/003-dependency-free-bridges.md).
 
 ## Status
 
@@ -139,9 +185,20 @@ The fixed point at zero (Unity) emerges from the cosmological model: at maximum 
 | relativity | 29 | Complete (SR + GR + BH + lensing) |
 | cosmology | 19 | Complete (Friedmann + expansion) |
 | quantum_field | 44 | Complete (propagators + vacuum + coupling + Feynman) |
-| unified | 30 | Complete (holographic + fixed point + scale bridge) |
+| unified | 42 | Complete (holographic + fixed point + Scale 3-7 bridges) |
 
-244 tests, 14 benchmarks, 4 examples, 9 doc tests, clippy clean, zero `unsafe`.
+257 tests, 14 benchmarks, 4 examples, 9 doc tests, clippy clean, zero `unsafe`.
+
+## Documentation
+
+- [Architecture Overview](docs/architecture/overview.md) — system diagram, module structure, data flow
+- [Development Roadmap](docs/development/roadmap.md) — milestones and planned work
+- Architecture Decision Records:
+  - [ADR-001: Input/Output Validation](docs/architecture/adr/001-input-output-validation.md)
+  - [ADR-002: Natural Units in QFT](docs/architecture/adr/002-natural-units-in-qft.md)
+  - [ADR-003: Dependency-Free Bridges](docs/architecture/adr/003-dependency-free-bridges.md)
+  - [ADR-004: Manifestation Intensity Model](docs/architecture/adr/004-manifestation-intensity-model.md)
+  - [ADR-005: Feature-Gated Modules](docs/architecture/adr/005-feature-gated-modules.md)
 
 ## License
 
