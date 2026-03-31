@@ -5,7 +5,7 @@
 
 use std::f64::consts::PI;
 
-use tracing::warn;
+use tracing::{instrument, warn};
 
 use crate::constants::{C, HBAR};
 use crate::error::{MimamsaError, ensure_finite, require_finite};
@@ -30,6 +30,7 @@ pub fn zero_point_energy(omega: f64) -> Result<f64, MimamsaError> {
 /// E = Σ_{n=1}^{n_max} ½ℏω_n where ω_n = cπn/L (SI units, Joules).
 ///
 /// The sum diverges as n_max → ∞; n_max serves as an ultraviolet cutoff.
+#[instrument(level = "trace")]
 pub fn zero_point_energy_sum(box_size_m: f64, n_max: usize) -> Result<f64, MimamsaError> {
     require_finite(box_size_m, "zero_point_energy_sum")?;
     if box_size_m <= 0.0 {
@@ -57,6 +58,7 @@ pub fn zero_point_energy_sum(box_size_m: f64, n_max: usize) -> Result<f64, Mimam
 /// F/A = -π²ℏc / (240 d⁴) (SI units, N/m²).
 ///
 /// The force is attractive (negative).
+#[instrument(level = "trace")]
 #[inline]
 pub fn casimir_force_per_area(plate_separation_m: f64) -> Result<f64, MimamsaError> {
     require_finite(plate_separation_m, "casimir_force_per_area")?;
@@ -76,6 +78,7 @@ pub fn casimir_force_per_area(plate_separation_m: f64) -> Result<f64, MimamsaErr
 /// Casimir energy per unit area between parallel conducting plates.
 ///
 /// E/A = -π²ℏc / (720 d³) (SI units, J/m²).
+#[instrument(level = "trace")]
 #[inline]
 pub fn casimir_energy_per_area(plate_separation_m: f64) -> Result<f64, MimamsaError> {
     require_finite(plate_separation_m, "casimir_energy_per_area")?;
@@ -98,6 +101,7 @@ pub fn casimir_energy_per_area(plate_separation_m: f64) -> Result<f64, MimamsaEr
 /// Regularized vacuum energy density with hard momentum cutoff Λ.
 ///
 /// ρ_vac = Λ⁴ / (16π²) (natural units, GeV⁴).
+#[instrument(level = "trace")]
 #[inline]
 pub fn regularized_vacuum_energy_density(cutoff_gev: f64) -> Result<f64, MimamsaError> {
     require_finite(cutoff_gev, "regularized_vacuum_energy_density")?;
@@ -121,6 +125,7 @@ pub fn regularized_vacuum_energy_density(cutoff_gev: f64) -> Result<f64, Mimamsa
 /// # Arguments
 /// * `mass_gev` — Scalar field mass (GeV).
 /// * `mu_gev` — Renormalization scale (GeV).
+#[instrument(level = "trace")]
 pub fn vacuum_energy_density_dimreg(mass_gev: f64, mu_gev: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_gev, "vacuum_energy_density_dimreg")?;
     require_finite(mu_gev, "vacuum_energy_density_dimreg")?;

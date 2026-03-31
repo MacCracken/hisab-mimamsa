@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use tracing::warn;
+use tracing::{instrument, warn};
 
 use crate::error::{MimamsaError, ensure_finite, require_all_finite, require_finite};
 
@@ -10,6 +10,7 @@ use crate::error::{MimamsaError, ensure_finite, require_all_finite, require_fini
 pub use crate::constants::{C, G};
 
 /// Schwarzschild radius: r_s = 2GM/c².
+#[instrument(level = "trace")]
 #[inline]
 pub fn schwarzschild_radius(mass_kg: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_kg, "schwarzschild_radius")?;
@@ -18,6 +19,7 @@ pub fn schwarzschild_radius(mass_kg: f64) -> Result<f64, MimamsaError> {
 
 /// Gravitational time dilation at radius r from mass M.
 /// τ/t = √(1 - r_s/r). Returns error at or inside event horizon.
+#[instrument(level = "trace")]
 #[inline]
 pub fn gravitational_time_dilation(mass_kg: f64, r: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[mass_kg, r], "gravitational_time_dilation")?;
@@ -33,6 +35,7 @@ pub fn gravitational_time_dilation(mass_kg: f64, r: f64) -> Result<f64, MimamsaE
 }
 
 /// Gravitational redshift: λ_obs/λ_emit = 1/√(1 - r_s/r).
+#[instrument(level = "trace")]
 #[inline]
 pub fn gravitational_redshift(mass_kg: f64, r_emit: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[mass_kg, r_emit], "gravitational_redshift")?;
@@ -43,6 +46,7 @@ pub fn gravitational_redshift(mass_kg: f64, r_emit: f64) -> Result<f64, MimamsaE
 }
 
 /// ISCO (innermost stable circular orbit) for Schwarzschild: r_isco = 3r_s.
+#[instrument(level = "trace")]
 #[inline]
 pub fn schwarzschild_isco(mass_kg: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_kg, "schwarzschild_isco")?;
@@ -50,6 +54,7 @@ pub fn schwarzschild_isco(mass_kg: f64) -> Result<f64, MimamsaError> {
 }
 
 /// Photon sphere radius for Schwarzschild: r_ph = 1.5 r_s.
+#[instrument(level = "trace")]
 #[inline]
 pub fn photon_sphere_radius(mass_kg: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_kg, "photon_sphere_radius")?;
@@ -58,6 +63,7 @@ pub fn photon_sphere_radius(mass_kg: f64) -> Result<f64, MimamsaError> {
 
 /// Orbital velocity for circular orbit in Schwarzschild geometry.
 /// v = √(GM/r) * 1/√(1 - r_s/r) for r > r_isco.
+#[instrument(level = "trace")]
 pub fn schwarzschild_orbital_velocity(mass_kg: f64, r: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[mass_kg, r], "schwarzschild_orbital_velocity")?;
     let rs = schwarzschild_radius(mass_kg)?;

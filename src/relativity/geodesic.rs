@@ -6,6 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::error::{MimamsaError, ensure_finite, require_all_finite};
+use tracing::instrument;
 
 /// A point in spacetime with position and four-velocity.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -35,6 +36,7 @@ pub enum GeodesicType {
 /// Effective potential for radial motion in Schwarzschild geometry.
 /// V_eff(r) = (1 - r_s/r)(1 + L²/(r²c²))
 /// For null geodesics: V_eff(r) = (1 - r_s/r) * L²/r²
+#[instrument(level = "trace")]
 #[inline]
 pub fn schwarzschild_effective_potential(
     rs: f64,
@@ -69,6 +71,7 @@ pub fn schwarzschild_effective_potential(
 
 /// Deflection angle for light passing mass M at impact parameter b.
 /// Δφ ≈ 4GM/(bc²) (weak field, first order).
+#[instrument(level = "trace")]
 #[inline]
 pub fn light_deflection_weak_field(
     mass_kg: f64,
@@ -84,6 +87,7 @@ pub fn light_deflection_weak_field(
 
 /// Shapiro time delay for signal passing mass M.
 /// Δt ≈ (4GM/c³) * ln(4r₁r₂/b²) where r₁,r₂ are emitter/receiver distances.
+#[instrument(level = "trace")]
 pub fn shapiro_delay(
     mass_kg: f64,
     r1: f64,

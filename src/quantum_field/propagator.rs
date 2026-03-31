@@ -5,7 +5,7 @@
 //! in `hisab::Complex`.
 
 use hisab::Complex;
-use tracing::warn;
+use tracing::{error, instrument, warn};
 
 use crate::error::{MimamsaError, ensure_finite_complex, require_finite};
 
@@ -22,6 +22,7 @@ pub const DEFAULT_EPSILON: f64 = 1e-10;
 /// * `p` — Four-momentum.
 /// * `mass_gev` — Particle mass in GeV (natural units).
 /// * `epsilon` — Feynman iε regulator (small positive, e.g. [`DEFAULT_EPSILON`]).
+#[instrument(level = "trace", skip(p))]
 #[inline]
 pub fn scalar_propagator(
     p: &FourMomentum,
@@ -48,6 +49,7 @@ pub fn scalar_propagator(
 /// The full spinor structure S_F(p) = i(p̸ + m) / (p² - m² + iε) requires
 /// gamma matrices; this returns the scalar piece. Multiply by (p̸ + m) in
 /// spinor space for the complete propagator.
+#[instrument(level = "trace", skip(p))]
 #[inline]
 pub fn fermion_propagator_scalar(
     p: &FourMomentum,
@@ -64,6 +66,7 @@ pub fn fermion_propagator_scalar(
 ///
 /// Returns the scalar factor -i / (k² + iε); the metric tensor g^μν is implicit.
 /// Massless (m = 0).
+#[instrument(level = "trace", skip(k))]
 #[inline]
 pub fn gauge_boson_propagator(k: &FourMomentum, epsilon: f64) -> Result<Complex, MimamsaError> {
     require_finite(epsilon, "gauge_boson_propagator")?;
@@ -91,6 +94,7 @@ pub fn gauge_boson_propagator(k: &FourMomentum, epsilon: f64) -> Result<Complex,
 /// * `time_separation` — Temporal separation in natural units (1/GeV).
 /// * `n_points` — FFT resolution (must be a power of 2).
 /// * `e_max` — Energy cutoff for the integration grid (GeV).
+#[instrument(level = "debug")]
 pub fn scalar_propagator_position_space(
     mass_gev: f64,
     time_separation: f64,
@@ -136,6 +140,7 @@ pub fn scalar_propagator_position_space(
 
     // FFT gives us the Fourier integral
     hisab::num::fft(&mut data).map_err(|e| {
+        error!(%e, "FFT failed in position-space propagator");
         MimamsaError::Computation(format!("scalar_propagator_position_space: FFT failed: {e}"))
     })?;
 

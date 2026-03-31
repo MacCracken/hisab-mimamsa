@@ -5,7 +5,7 @@
 
 use std::f64::consts::PI;
 
-use tracing::warn;
+use tracing::{instrument, warn};
 
 use crate::constants::{C, G, HBAR, K_B};
 use crate::error::{MimamsaError, ensure_finite, require_finite};
@@ -18,6 +18,7 @@ use crate::relativity::black_hole::bekenstein_hawking_entropy;
 /// # Arguments
 /// * `radius_m` — Bounding sphere radius (m, must be > 0).
 /// * `energy_j` — Total energy of the system (J, must be > 0).
+#[instrument(level = "trace")]
 #[inline]
 pub fn bekenstein_bound(radius_m: f64, energy_j: f64) -> Result<f64, MimamsaError> {
     require_finite(radius_m, "bekenstein_bound")?;
@@ -46,6 +47,7 @@ pub fn bekenstein_bound(radius_m: f64, energy_j: f64) -> Result<f64, MimamsaErro
 ///
 /// # Arguments
 /// * `area_m2` — Bounding surface area (m², must be > 0).
+#[instrument(level = "trace")]
 #[inline]
 pub fn holographic_bound(area_m2: f64) -> Result<f64, MimamsaError> {
     require_finite(area_m2, "holographic_bound")?;
@@ -62,6 +64,7 @@ pub fn holographic_bound(area_m2: f64) -> Result<f64, MimamsaError> {
 /// Convert entropy (J/K) to information content (bits).
 ///
 /// I = S / (k_B ln 2)
+#[instrument(level = "trace")]
 #[inline]
 pub fn information_content_bits(entropy_j_per_k: f64) -> Result<f64, MimamsaError> {
     require_finite(entropy_j_per_k, "information_content_bits")?;
@@ -83,6 +86,7 @@ pub fn information_content_bits(entropy_j_per_k: f64) -> Result<f64, MimamsaErro
 /// Information content of a Schwarzschild black hole (bits).
 ///
 /// Calls [`bekenstein_hawking_entropy`] then converts to bits.
+#[instrument(level = "trace")]
 pub fn black_hole_information_bits(mass_kg: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_kg, "black_hole_information_bits")?;
     if mass_kg <= 0.0 {
@@ -107,6 +111,7 @@ pub fn black_hole_information_bits(mass_kg: f64) -> Result<f64, MimamsaError> {
 ///
 /// # Arguments
 /// * `hubble_param_si` — Hubble parameter in s⁻¹ (must be > 0).
+#[instrument(level = "trace")]
 #[inline]
 pub fn cosmological_horizon_entropy(hubble_param_si: f64) -> Result<f64, MimamsaError> {
     require_finite(hubble_param_si, "cosmological_horizon_entropy")?;

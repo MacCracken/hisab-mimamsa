@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::error::{MimamsaError, ensure_finite, require_all_finite, require_finite};
+use tracing::instrument;
 
 /// Hubble constant H₀ (km/s/Mpc → s⁻¹ for internal use).
 pub const H0_KM_S_MPC: f64 = 67.4; // Planck 2018
@@ -89,6 +90,7 @@ pub fn critical_density(h: f64) -> Result<f64, MimamsaError> {
 
 /// Deceleration parameter q(z) = -1 - Ḣ/H².
 /// At z=0: q₀ = Ω_m/2 + Ω_r - Ω_Λ.
+#[instrument(level = "trace", skip(params))]
 #[inline]
 pub fn deceleration_parameter_now(params: &CosmologicalParameters) -> Result<f64, MimamsaError> {
     require_all_finite(
@@ -103,6 +105,7 @@ pub fn deceleration_parameter_now(params: &CosmologicalParameters) -> Result<f64
 
 /// Age of universe via numerical integration of 1/((1+z)H(z)).
 /// Uses simple trapezoidal rule with n steps from z=0 to z_max.
+#[instrument(level = "debug", skip(params))]
 pub fn age_of_universe(
     params: &CosmologicalParameters,
     z_max: f64,

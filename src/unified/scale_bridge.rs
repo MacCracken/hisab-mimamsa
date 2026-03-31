@@ -7,7 +7,7 @@
 //! All energy scales in GeV (natural units).
 
 use serde::{Deserialize, Serialize};
-use tracing::warn;
+use tracing::{instrument, warn};
 
 use crate::constants::{ALPHA, ALPHA_S_MZ, M_Z_GEV};
 use crate::cosmology::friedmann::CosmologicalParameters;
@@ -51,6 +51,7 @@ impl BridgeOutput {
     /// Compute the full bridge output at redshift z.
     ///
     /// Convergence rate is estimated by finite difference with Δz = 0.01.
+    #[instrument(level = "debug", skip(params), ret)]
     pub fn at_redshift(params: &CosmologicalParameters, z: f64) -> Result<Self, MimamsaError> {
         let intensity = bridge_scale_6(params, z)?;
         let phase = bridge_scale_7(params, z)?;
@@ -76,6 +77,7 @@ impl BridgeOutput {
 ///
 /// Convenience wrapper: runs α from [`ALPHA`] at [`M_Z_GEV`] to μ using
 /// the one-loop analytic formula.
+#[instrument(level = "trace")]
 #[inline]
 pub fn scale_coupling_qed(mu_gev: f64) -> Result<f64, MimamsaError> {
     require_finite(mu_gev, "scale_coupling_qed")?;
@@ -91,6 +93,7 @@ pub fn scale_coupling_qed(mu_gev: f64) -> Result<f64, MimamsaError> {
 /// QCD running coupling at energy scale μ (GeV) with n_f active flavors.
 ///
 /// Convenience wrapper: runs α_s from [`ALPHA_S_MZ`] at [`M_Z_GEV`] to μ.
+#[instrument(level = "trace")]
 #[inline]
 pub fn scale_coupling_qcd(mu_gev: f64, n_f: u8) -> Result<f64, MimamsaError> {
     require_finite(mu_gev, "scale_coupling_qcd")?;
@@ -145,6 +148,7 @@ fn sign_index(longitude_deg: f64) -> usize {
 /// are weighted 2×. Returns normalized [Fire, Earth, Air, Water].
 ///
 /// Planet order: Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto.
+#[instrument(level = "trace", skip(longitudes_deg))]
 pub fn element_balance(longitudes_deg: &[f64; 10]) -> Result<[f64; 4], MimamsaError> {
     require_all_finite(longitudes_deg, "element_balance")?;
     let mut counts = [0.0_f64; 4];
@@ -168,6 +172,7 @@ pub fn element_balance(longitudes_deg: &[f64; 10]) -> Result<[f64; 4], MimamsaEr
 /// Compute modality balance from 10 planetary ecliptic longitudes.
 ///
 /// Returns normalized [Cardinal, Fixed, Mutable].
+#[instrument(level = "trace", skip(longitudes_deg))]
 pub fn modality_balance(longitudes_deg: &[f64; 10]) -> Result<[f64; 3], MimamsaError> {
     require_all_finite(longitudes_deg, "modality_balance")?;
     let mut counts = [0.0_f64; 3];
@@ -196,6 +201,7 @@ pub fn modality_balance(longitudes_deg: &[f64; 10]) -> Result<[f64; 3], MimamsaE
 ///
 /// Input: slice of (aspect_angle_degrees, strength_0_to_1) pairs.
 /// Returns (tension, harmony), each ∈ [0, 1].
+#[instrument(level = "trace", skip(aspects))]
 pub fn aspect_tension_harmony(aspects: &[(f64, f64)]) -> Result<(f64, f64), MimamsaError> {
     if aspects.is_empty() {
         return Ok((0.0, 0.0));
@@ -234,6 +240,7 @@ pub fn aspect_tension_harmony(aspects: &[(f64, f64)]) -> Result<(f64, f64), Mima
 /// Returns normalized 12-element array (sum = 1.0).
 ///
 /// Handles the 360° wraparound correctly.
+#[instrument(level = "trace", skip(planet_longitudes, house_cusps))]
 pub fn house_emphasis(
     planet_longitudes: &[f64; 10],
     house_cusps: &[f64; 12],
@@ -310,6 +317,7 @@ pub fn retrograde_fraction(daily_motions: &[f64]) -> Result<f64, MimamsaError> {
 /// * `house_cusps` — 12 house cusp longitudes in degrees.
 /// * `aspects` — Slice of (angle_degrees, strength) pairs for active aspects.
 /// * `daily_motions` — Daily motion in degrees/day per planet.
+#[instrument(level = "debug", skip_all)]
 pub fn bridge_scale_3(
     planet_longitudes: &[f64; 10],
     house_cusps: &[f64; 12],
@@ -376,6 +384,7 @@ pub fn bridge_scale_5() -> Result<f64, MimamsaError> {
 ///
 /// Maps the cosmos's thermodynamic distance from equilibrium into a scalar
 /// that modulates all manifestation at that epoch.
+#[instrument(level = "trace", skip(params))]
 pub fn bridge_scale_6(params: &CosmologicalParameters, z: f64) -> Result<f64, MimamsaError> {
     manifestation_intensity(params, z)
 }
@@ -389,6 +398,7 @@ pub fn bridge_scale_6(params: &CosmologicalParameters, z: f64) -> Result<f64, Mi
 /// For ΛCDM (monotonic expansion) this equals Scale 6. In future cyclic
 /// cosmology extensions, Scale 7 would incorporate the oscillation phase
 /// of successive cosmic cycles.
+#[instrument(level = "trace", skip(params))]
 pub fn bridge_scale_7(params: &CosmologicalParameters, z: f64) -> Result<f64, MimamsaError> {
     // For ΛCDM, phase = intensity. Separated for future cyclic extensions.
     manifestation_intensity(params, z)

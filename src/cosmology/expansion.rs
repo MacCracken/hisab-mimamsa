@@ -3,9 +3,11 @@
 use super::friedmann::{CosmologicalParameters, MPC_IN_KM, hubble_parameter};
 
 use crate::error::{MimamsaError, ensure_finite, require_finite};
+use tracing::instrument;
 
 /// Comoving distance to redshift z (meters).
 /// d_C = c ∫₀ᶻ dz'/H(z')
+#[instrument(level = "debug", skip(params))]
 pub fn comoving_distance(
     params: &CosmologicalParameters,
     z: f64,
@@ -31,6 +33,7 @@ pub fn comoving_distance(
 }
 
 /// Luminosity distance: d_L = (1+z) * d_C.
+#[instrument(level = "debug", skip(params))]
 pub fn luminosity_distance(
     params: &CosmologicalParameters,
     z: f64,
@@ -44,6 +47,7 @@ pub fn luminosity_distance(
 }
 
 /// Angular diameter distance: d_A = d_C / (1+z).
+#[instrument(level = "debug", skip(params))]
 pub fn angular_diameter_distance(
     params: &CosmologicalParameters,
     z: f64,
@@ -58,6 +62,7 @@ pub fn angular_diameter_distance(
 
 /// Lookback time to redshift z (seconds).
 /// t_lb = ∫₀ᶻ dz'/((1+z')H(z'))
+#[instrument(level = "debug", skip(params))]
 pub fn lookback_time(
     params: &CosmologicalParameters,
     z: f64,

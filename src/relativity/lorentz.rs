@@ -1,7 +1,7 @@
 //! Special relativity — Lorentz transformations, four-vectors, invariants.
 
 use serde::{Deserialize, Serialize};
-use tracing::warn;
+use tracing::{instrument, warn};
 
 use crate::error::{MimamsaError, ensure_finite, require_all_finite, require_finite};
 
@@ -11,6 +11,7 @@ pub use crate::constants::{C, C2};
 /// Lorentz factor γ = 1/√(1 - v²/c²).
 ///
 /// Returns error if v ≥ c (superluminal).
+#[instrument(level = "trace")]
 #[inline]
 pub fn lorentz_factor(v: f64) -> Result<f64, MimamsaError> {
     require_finite(v, "lorentz_factor")?;
@@ -31,6 +32,7 @@ pub fn beta(v: f64) -> Result<f64, MimamsaError> {
 }
 
 /// Time dilation: Δt' = γΔt.
+#[instrument(level = "trace")]
 #[inline]
 pub fn time_dilation(proper_time: f64, v: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[proper_time, v], "time_dilation")?;
@@ -38,6 +40,7 @@ pub fn time_dilation(proper_time: f64, v: f64) -> Result<f64, MimamsaError> {
 }
 
 /// Length contraction: L' = L/γ.
+#[instrument(level = "trace")]
 #[inline]
 pub fn length_contraction(proper_length: f64, v: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[proper_length, v], "length_contraction")?;
@@ -45,6 +48,7 @@ pub fn length_contraction(proper_length: f64, v: f64) -> Result<f64, MimamsaErro
 }
 
 /// Relativistic kinetic energy: E_k = (γ - 1)mc².
+#[instrument(level = "trace")]
 #[inline]
 pub fn kinetic_energy(mass_kg: f64, v: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[mass_kg, v], "kinetic_energy")?;
@@ -53,6 +57,7 @@ pub fn kinetic_energy(mass_kg: f64, v: f64) -> Result<f64, MimamsaError> {
 }
 
 /// Total relativistic energy: E = γmc².
+#[instrument(level = "trace")]
 #[inline]
 pub fn total_energy(mass_kg: f64, v: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[mass_kg, v], "total_energy")?;
@@ -67,6 +72,7 @@ pub fn rest_energy(mass_kg: f64) -> Result<f64, MimamsaError> {
 }
 
 /// Relativistic momentum: p = γmv.
+#[instrument(level = "trace")]
 #[inline]
 pub fn relativistic_momentum(mass_kg: f64, v: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[mass_kg, v], "relativistic_momentum")?;
@@ -74,6 +80,7 @@ pub fn relativistic_momentum(mass_kg: f64, v: f64) -> Result<f64, MimamsaError> 
 }
 
 /// Relativistic velocity addition: u' = (u + v) / (1 + uv/c²).
+#[instrument(level = "trace")]
 #[inline]
 pub fn velocity_addition(u: f64, v: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[u, v], "velocity_addition")?;
@@ -82,6 +89,7 @@ pub fn velocity_addition(u: f64, v: f64) -> Result<f64, MimamsaError> {
 
 /// Relativistic Doppler factor for radial motion.
 /// f_obs = f_src * √((1 - β) / (1 + β)) for recession (v > 0).
+#[instrument(level = "trace")]
 #[inline]
 pub fn doppler_factor(v: f64) -> Result<f64, MimamsaError> {
     require_finite(v, "doppler_factor")?;
@@ -148,6 +156,7 @@ impl FourVector {
     }
 
     /// Lorentz boost along x-axis.
+    #[instrument(level = "trace", skip(self))]
     pub fn boost_x(&self, v: f64) -> Result<Self, MimamsaError> {
         require_finite(v, "boost_x")?;
         let gamma = lorentz_factor(v)?;

@@ -8,9 +8,11 @@ use super::metric::schwarzschild_radius;
 use crate::constants::{C, G};
 pub use crate::constants::{HBAR, K_B};
 use crate::error::{MimamsaError, ensure_finite, require_finite};
+use tracing::instrument;
 
 /// Hawking temperature of a Schwarzschild black hole.
 /// T_H = ℏc³ / (8πGMk_B)
+#[instrument(level = "trace")]
 #[inline]
 pub fn hawking_temperature(mass_kg: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_kg, "hawking_temperature")?;
@@ -22,6 +24,7 @@ pub fn hawking_temperature(mass_kg: f64) -> Result<f64, MimamsaError> {
 
 /// Bekenstein-Hawking entropy: S = k_B * A / (4 * l_P²)
 /// where A = 4πr_s² and l_P = √(ℏG/c³).
+#[instrument(level = "trace")]
 pub fn bekenstein_hawking_entropy(mass_kg: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_kg, "bekenstein_hawking_entropy")?;
     let rs = schwarzschild_radius(mass_kg)?;
@@ -31,6 +34,7 @@ pub fn bekenstein_hawking_entropy(mass_kg: f64) -> Result<f64, MimamsaError> {
 }
 
 /// Hawking evaporation time: t ≈ 5120πG²M³/(ℏc⁴).
+#[instrument(level = "trace")]
 #[inline]
 pub fn evaporation_time(mass_kg: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_kg, "evaporation_time")?;
@@ -41,6 +45,7 @@ pub fn evaporation_time(mass_kg: f64) -> Result<f64, MimamsaError> {
 }
 
 /// Schwarzschild black hole surface gravity: κ = c⁴/(4GM).
+#[instrument(level = "trace")]
 #[inline]
 pub fn surface_gravity(mass_kg: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_kg, "surface_gravity")?;
@@ -60,6 +65,7 @@ pub struct BlackHoleProperties {
 
 impl BlackHoleProperties {
     /// Compute all properties from mass.
+    #[instrument(level = "debug", ret)]
     pub fn from_mass(mass_kg: f64) -> Result<Self, MimamsaError> {
         require_finite(mass_kg, "BlackHoleProperties::from_mass")?;
         Ok(Self {

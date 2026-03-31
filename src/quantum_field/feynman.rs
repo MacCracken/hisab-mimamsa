@@ -11,7 +11,7 @@ use std::f64::consts::PI;
 use hisab::Complex;
 use serde::{Deserialize, Serialize};
 
-use tracing::warn;
+use tracing::{instrument, warn};
 
 use crate::error::{MimamsaError, ensure_finite, ensure_finite_complex, require_finite};
 
@@ -102,6 +102,7 @@ impl TreeDiagram {
 /// This is a simplified evaluator: it multiplies all vertex coupling factors
 /// and all internal propagators (scalar factors). For full spinor/tensor
 /// structure, the caller must handle gamma matrices and polarization sums.
+#[instrument(level = "trace", skip(diagram))]
 pub fn tree_level_amplitude(diagram: &TreeDiagram) -> Result<Complex, MimamsaError> {
     let mut amplitude = Complex::new(1.0, 0.0);
 
@@ -174,6 +175,7 @@ pub fn verify_mandelstam_identity(
 /// # Arguments
 /// * `amplitude_sq` — |M|² (squared matrix element).
 /// * `s_mandelstam` — Center-of-mass energy squared (GeV²).
+#[instrument(level = "trace")]
 #[inline]
 pub fn differential_cross_section_2to2(
     amplitude_sq: f64,
@@ -205,6 +207,7 @@ pub fn differential_cross_section_2to2(
 /// Total cross-section for 2→2 scattering with massless final state and isotropic |M|².
 ///
 /// σ = |M|² / (16πs) (natural units, GeV⁻²).
+#[instrument(level = "trace")]
 #[inline]
 pub fn total_cross_section_2to2_massless(
     amplitude_sq: f64,

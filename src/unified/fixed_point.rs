@@ -5,7 +5,7 @@
 //! state and `manifestation_intensity` → 0.0 → Unity.
 
 use serde::{Deserialize, Serialize};
-use tracing::warn;
+use tracing::{instrument, warn};
 
 use crate::cosmology::friedmann::CosmologicalParameters;
 use crate::error::{MimamsaError, ensure_finite, require_finite};
@@ -37,6 +37,7 @@ pub struct FixedPointState {
 
 impl FixedPointState {
     /// Compute the full fixed-point state at redshift z.
+    #[instrument(level = "debug", skip(params), ret)]
     pub fn at_redshift(params: &CosmologicalParameters, z: f64) -> Result<Self, MimamsaError> {
         let phase = cosmic_phase(params, z)?;
         let e_ratio = entropy_ratio(params, z)?;
@@ -55,6 +56,7 @@ impl FixedPointState {
 ///
 /// Compares Ω_r(1+z)⁴, Ω_m(1+z)³, and Ω_Λ to find the largest
 /// contributor to H²(z).
+#[instrument(level = "trace", skip(params))]
 pub fn cosmic_phase(params: &CosmologicalParameters, z: f64) -> Result<CosmicPhase, MimamsaError> {
     require_finite(z, "cosmic_phase")?;
     if z < -1.0 {
@@ -86,6 +88,7 @@ pub fn cosmic_phase(params: &CosmologicalParameters, z: f64) -> Result<CosmicPha
 /// in the ratio.
 ///
 /// Returns a value in [0, 1] that increases monotonically toward the future.
+#[instrument(level = "trace", skip(params))]
 pub fn entropy_ratio(params: &CosmologicalParameters, z: f64) -> Result<f64, MimamsaError> {
     require_finite(z, "entropy_ratio")?;
     if z < -1.0 {
@@ -122,6 +125,7 @@ pub fn entropy_ratio(params: &CosmologicalParameters, z: f64) -> Result<f64, Mim
 /// far from equilibrium, trending to 0 at heat death.
 ///
 /// For bhava Scale 6: the cosmic expansion contribution to manifestation.
+#[instrument(level = "trace", skip(params))]
 pub fn manifestation_intensity(
     params: &CosmologicalParameters,
     z: f64,
@@ -134,6 +138,7 @@ pub fn manifestation_intensity(
 ///
 /// Approaches 1.0 at heat death (maximum entropy, ground state convergence).
 /// This is the fixed-point attractor value.
+#[instrument(level = "trace")]
 #[inline]
 pub fn unity_parameter(intensity: f64) -> Result<f64, MimamsaError> {
     require_finite(intensity, "unity_parameter")?;

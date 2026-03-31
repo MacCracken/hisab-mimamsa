@@ -8,7 +8,7 @@
 use std::f64::consts::PI;
 
 use serde::{Deserialize, Serialize};
-use tracing::warn;
+use tracing::{error, instrument, warn};
 
 use crate::error::{MimamsaError, ensure_finite, require_finite};
 
@@ -54,6 +54,7 @@ pub fn is_asymptotically_free(n_f: u8) -> bool {
 /// * `mu_0_gev` — Reference energy scale (GeV).
 /// * `mu_gev` — Target energy scale (GeV).
 /// * `n_steps` — Number of RK4 integration steps.
+#[instrument(level = "trace")]
 pub fn running_coupling_qed(
     alpha_0: f64,
     mu_0_gev: f64,
@@ -89,7 +90,10 @@ pub fn running_coupling_qed(
         t_end,
         n_steps,
     )
-    .map_err(|e| MimamsaError::Computation(format!("running_coupling_qed: RK4 failed: {e}")))?;
+    .map_err(|e| {
+        error!(%e, "RK4 integration failed in QED coupling evolution");
+        MimamsaError::Computation(format!("running_coupling_qed: RK4 failed: {e}"))
+    })?;
 
     ensure_finite(result[0], "running_coupling_qed")
 }
@@ -102,6 +106,7 @@ pub fn running_coupling_qed(
 /// * `mu_gev` — Target energy scale (GeV).
 /// * `n_f` — Number of active quark flavors.
 /// * `n_steps` — Number of RK4 integration steps.
+#[instrument(level = "trace")]
 pub fn running_coupling_qcd(
     alpha_s_0: f64,
     mu_0_gev: f64,
@@ -139,7 +144,10 @@ pub fn running_coupling_qcd(
         t_end,
         n_steps,
     )
-    .map_err(|e| MimamsaError::Computation(format!("running_coupling_qcd: RK4 failed: {e}")))?;
+    .map_err(|e| {
+        error!(%e, "RK4 integration failed in QCD coupling evolution");
+        MimamsaError::Computation(format!("running_coupling_qcd: RK4 failed: {e}"))
+    })?;
 
     ensure_finite(result[0], "running_coupling_qcd")
 }
@@ -147,6 +155,7 @@ pub fn running_coupling_qcd(
 /// One-loop analytic QED running: α(μ) = α₀ / (1 - 2α₀/(3π) · ln(μ/μ₀)).
 ///
 /// Exact at one-loop; faster than numerical integration.
+#[instrument(level = "trace")]
 #[inline]
 pub fn running_coupling_qed_analytic(
     alpha_0: f64,
@@ -183,6 +192,7 @@ pub fn running_coupling_qed_analytic(
 /// One-loop analytic QCD running: α_s(μ) = α_s₀ / (1 + b₀α_s₀·ln(μ/μ₀)/(2π)).
 ///
 /// where b₀ = (33 - 2n_f)/6.
+#[instrument(level = "trace")]
 #[inline]
 pub fn running_coupling_qcd_analytic(
     alpha_s_0: f64,

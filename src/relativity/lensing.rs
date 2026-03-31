@@ -1,6 +1,6 @@
 //! Gravitational lensing — Einstein rings, magnification, image distortion.
 
-use tracing::warn;
+use tracing::{instrument, warn};
 
 use crate::constants::{C, G};
 use crate::error::{MimamsaError, ensure_finite, require_all_finite, require_finite};
@@ -8,6 +8,7 @@ use crate::error::{MimamsaError, ensure_finite, require_all_finite, require_fini
 /// Einstein ring angular radius (radians).
 /// θ_E = √(4GM * D_ls / (c² * D_l * D_s))
 /// where D_l = lens distance, D_s = source distance, D_ls = lens-source distance.
+#[instrument(level = "trace")]
 #[inline]
 pub fn einstein_ring_radius(mass_kg: f64, d_lens: f64, d_source: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[mass_kg, d_lens, d_source], "einstein_ring_radius")?;
@@ -30,6 +31,7 @@ pub fn einstein_ring_radius(mass_kg: f64, d_lens: f64, d_source: f64) -> Result<
 /// Point-source magnification for a point lens.
 /// μ = (u² + 2) / (u * √(u² + 4))
 /// where u = angular separation / θ_E.
+#[instrument(level = "trace")]
 #[inline]
 pub fn point_lens_magnification(u: f64) -> Result<f64, MimamsaError> {
     require_finite(u, "point_lens_magnification")?;
@@ -45,6 +47,7 @@ pub fn point_lens_magnification(u: f64) -> Result<f64, MimamsaError> {
 
 /// Critical surface density for lensing (kg/m²).
 /// Σ_cr = c²D_s / (4πGD_lD_ls)
+#[instrument(level = "trace")]
 #[inline]
 pub fn critical_surface_density(d_lens: f64, d_source: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[d_lens, d_source], "critical_surface_density")?;
