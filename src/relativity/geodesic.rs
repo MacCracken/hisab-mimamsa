@@ -5,7 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::error::{ensure_finite, require_all_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, require_all_finite};
 
 /// A point in spacetime with position and four-velocity.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -42,42 +42,62 @@ pub fn schwarzschild_effective_potential(
     angular_momentum: f64,
     geodesic_type: GeodesicType,
 ) -> Result<f64, MimamsaError> {
-    require_all_finite(&[rs, r, angular_momentum], "schwarzschild_effective_potential")?;
+    require_all_finite(
+        &[rs, r, angular_momentum],
+        "schwarzschild_effective_potential",
+    )?;
     let factor = 1.0 - rs / r;
-    ensure_finite(match geodesic_type {
-        GeodesicType::Timelike => {
-            let l2 = angular_momentum * angular_momentum;
-            factor * (1.0 + l2 / (r * r))
-        }
-        GeodesicType::Null => {
-            let l2 = angular_momentum * angular_momentum;
-            factor * l2 / (r * r)
-        }
-        GeodesicType::Spacelike => {
-            // Theoretical
-            let l2 = angular_momentum * angular_momentum;
-            factor * (-1.0 + l2 / (r * r))
-        }
-    }, "schwarzschild_effective_potential")
+    ensure_finite(
+        match geodesic_type {
+            GeodesicType::Timelike => {
+                let l2 = angular_momentum * angular_momentum;
+                factor * (1.0 + l2 / (r * r))
+            }
+            GeodesicType::Null => {
+                let l2 = angular_momentum * angular_momentum;
+                factor * l2 / (r * r)
+            }
+            GeodesicType::Spacelike => {
+                // Theoretical
+                let l2 = angular_momentum * angular_momentum;
+                factor * (-1.0 + l2 / (r * r))
+            }
+        },
+        "schwarzschild_effective_potential",
+    )
 }
 
 /// Deflection angle for light passing mass M at impact parameter b.
 /// Δφ ≈ 4GM/(bc²) (weak field, first order).
 #[inline]
-pub fn light_deflection_weak_field(mass_kg: f64, impact_parameter: f64) -> Result<f64, MimamsaError> {
+pub fn light_deflection_weak_field(
+    mass_kg: f64,
+    impact_parameter: f64,
+) -> Result<f64, MimamsaError> {
     use crate::constants::{C, G};
     require_all_finite(&[mass_kg, impact_parameter], "light_deflection_weak_field")?;
-    ensure_finite(4.0 * G * mass_kg / (impact_parameter * C * C), "light_deflection_weak_field")
+    ensure_finite(
+        4.0 * G * mass_kg / (impact_parameter * C * C),
+        "light_deflection_weak_field",
+    )
 }
 
 /// Shapiro time delay for signal passing mass M.
 /// Δt ≈ (4GM/c³) * ln(4r₁r₂/b²) where r₁,r₂ are emitter/receiver distances.
-pub fn shapiro_delay(mass_kg: f64, r1: f64, r2: f64, impact_parameter: f64) -> Result<f64, MimamsaError> {
+pub fn shapiro_delay(
+    mass_kg: f64,
+    r1: f64,
+    r2: f64,
+    impact_parameter: f64,
+) -> Result<f64, MimamsaError> {
     use crate::constants::{C, G};
     require_all_finite(&[mass_kg, r1, r2, impact_parameter], "shapiro_delay")?;
     let c3 = C.powi(3);
     let prefactor = 4.0 * G * mass_kg / c3;
-    ensure_finite(prefactor * (4.0 * r1 * r2 / (impact_parameter * impact_parameter)).ln(), "shapiro_delay")
+    ensure_finite(
+        prefactor * (4.0 * r1 * r2 / (impact_parameter * impact_parameter)).ln(),
+        "shapiro_delay",
+    )
 }
 
 #[cfg(test)]

@@ -2,11 +2,15 @@
 
 use super::friedmann::{CosmologicalParameters, MPC_IN_KM, hubble_parameter};
 
-use crate::error::{ensure_finite, require_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, require_finite};
 
 /// Comoving distance to redshift z (meters).
 /// d_C = c ∫₀ᶻ dz'/H(z')
-pub fn comoving_distance(params: &CosmologicalParameters, z: f64, n: usize) -> Result<f64, MimamsaError> {
+pub fn comoving_distance(
+    params: &CosmologicalParameters,
+    z: f64,
+    n: usize,
+) -> Result<f64, MimamsaError> {
     require_finite(z, "comoving_distance")?;
     if n == 0 {
         return Ok(0.0);
@@ -27,20 +31,38 @@ pub fn comoving_distance(params: &CosmologicalParameters, z: f64, n: usize) -> R
 }
 
 /// Luminosity distance: d_L = (1+z) * d_C.
-pub fn luminosity_distance(params: &CosmologicalParameters, z: f64, n: usize) -> Result<f64, MimamsaError> {
+pub fn luminosity_distance(
+    params: &CosmologicalParameters,
+    z: f64,
+    n: usize,
+) -> Result<f64, MimamsaError> {
     require_finite(z, "luminosity_distance")?;
-    ensure_finite((1.0 + z) * comoving_distance(params, z, n)?, "luminosity_distance")
+    ensure_finite(
+        (1.0 + z) * comoving_distance(params, z, n)?,
+        "luminosity_distance",
+    )
 }
 
 /// Angular diameter distance: d_A = d_C / (1+z).
-pub fn angular_diameter_distance(params: &CosmologicalParameters, z: f64, n: usize) -> Result<f64, MimamsaError> {
+pub fn angular_diameter_distance(
+    params: &CosmologicalParameters,
+    z: f64,
+    n: usize,
+) -> Result<f64, MimamsaError> {
     require_finite(z, "angular_diameter_distance")?;
-    ensure_finite(comoving_distance(params, z, n)? / (1.0 + z), "angular_diameter_distance")
+    ensure_finite(
+        comoving_distance(params, z, n)? / (1.0 + z),
+        "angular_diameter_distance",
+    )
 }
 
 /// Lookback time to redshift z (seconds).
 /// t_lb = ∫₀ᶻ dz'/((1+z')H(z'))
-pub fn lookback_time(params: &CosmologicalParameters, z: f64, n: usize) -> Result<f64, MimamsaError> {
+pub fn lookback_time(
+    params: &CosmologicalParameters,
+    z: f64,
+    n: usize,
+) -> Result<f64, MimamsaError> {
     require_finite(z, "lookback_time")?;
     if n == 0 {
         return Ok(0.0);

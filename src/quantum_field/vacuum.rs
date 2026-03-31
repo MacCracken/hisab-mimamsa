@@ -6,7 +6,7 @@
 use std::f64::consts::PI;
 
 use crate::constants::{C, HBAR};
-use crate::error::{ensure_finite, require_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, require_finite};
 
 /// Zero-point energy of a single field mode with angular frequency ω.
 ///
@@ -74,7 +74,10 @@ pub fn casimir_energy_per_area(plate_separation_m: f64) -> Result<f64, MimamsaEr
         ));
     }
     let d3 = plate_separation_m.powi(3);
-    ensure_finite(-PI * PI * HBAR * C / (720.0 * d3), "casimir_energy_per_area")
+    ensure_finite(
+        -PI * PI * HBAR * C / (720.0 * d3),
+        "casimir_energy_per_area",
+    )
 }
 
 /// Regularized vacuum energy density with hard momentum cutoff Λ.
@@ -99,10 +102,7 @@ pub fn regularized_vacuum_energy_density(cutoff_gev: f64) -> Result<f64, Mimamsa
 /// # Arguments
 /// * `mass_gev` — Scalar field mass (GeV).
 /// * `mu_gev` — Renormalization scale (GeV).
-pub fn vacuum_energy_density_dimreg(
-    mass_gev: f64,
-    mu_gev: f64,
-) -> Result<f64, MimamsaError> {
+pub fn vacuum_energy_density_dimreg(mass_gev: f64, mu_gev: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_gev, "vacuum_energy_density_dimreg")?;
     require_finite(mu_gev, "vacuum_energy_density_dimreg")?;
     if mass_gev <= 0.0 || mu_gev <= 0.0 {

@@ -15,8 +15,14 @@ fn main() {
     println!("Deceleration parameter q₀: {q0:.3} (< 0 → accelerating)");
 
     // CMB temperature
-    println!("CMB temperature today: {:.4} K", expansion::cmb_temperature(0.0).unwrap());
-    println!("CMB at decoupling (z=1100): {:.0} K", expansion::cmb_temperature(1100.0).unwrap());
+    println!(
+        "CMB temperature today: {:.4} K",
+        expansion::cmb_temperature(0.0).unwrap()
+    );
+    println!(
+        "CMB at decoupling (z=1100): {:.0} K",
+        expansion::cmb_temperature(1100.0).unwrap()
+    );
 
     // Distances at z=1
     let d_c = expansion::comoving_distance(&params, 1.0, 1000).unwrap();

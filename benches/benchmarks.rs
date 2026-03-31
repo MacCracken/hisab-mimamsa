@@ -48,7 +48,7 @@ fn bench_four_vector_boost(c: &mut Criterion) {
 mod qft_benches {
     use super::*;
     use hisab_mimamsa::constants::{ALPHA, ALPHA_S_MZ, M_Z_GEV};
-    use hisab_mimamsa::quantum_field::{coupling, propagator, vacuum, FourMomentum};
+    use hisab_mimamsa::quantum_field::{FourMomentum, coupling, propagator, vacuum};
 
     pub fn bench_scalar_propagator(c: &mut Criterion) {
         let p = FourMomentum::new(100.0, 50.0, 30.0, 10.0).unwrap();
@@ -134,8 +134,7 @@ mod unified_benches {
         let params = CosmologicalParameters::planck2018();
         c.bench_function("BridgeOutput::at_redshift", |b| {
             b.iter(|| {
-                scale_bridge::BridgeOutput::at_redshift(black_box(&params), black_box(0.0))
-                    .unwrap()
+                scale_bridge::BridgeOutput::at_redshift(black_box(&params), black_box(0.0)).unwrap()
             })
         });
     }

@@ -7,7 +7,7 @@
 use hisab::Complex;
 use tracing::warn;
 
-use crate::error::{ensure_finite_complex, require_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite_complex, require_finite};
 
 use super::FourMomentum;
 
@@ -65,10 +65,7 @@ pub fn fermion_propagator_scalar(
 /// Returns the scalar factor -i / (k² + iε); the metric tensor g^μν is implicit.
 /// Massless (m = 0).
 #[inline]
-pub fn gauge_boson_propagator(
-    k: &FourMomentum,
-    epsilon: f64,
-) -> Result<Complex, MimamsaError> {
+pub fn gauge_boson_propagator(k: &FourMomentum, epsilon: f64) -> Result<Complex, MimamsaError> {
     require_finite(epsilon, "gauge_boson_propagator")?;
     if epsilon <= 0.0 {
         warn!(epsilon, "gauge_boson_propagator: epsilon must be positive");

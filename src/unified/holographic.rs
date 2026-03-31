@@ -8,7 +8,7 @@ use std::f64::consts::PI;
 use tracing::warn;
 
 use crate::constants::{C, G, HBAR, K_B};
-use crate::error::{ensure_finite, require_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, require_finite};
 use crate::relativity::black_hole::bekenstein_hawking_entropy;
 
 /// Maximum entropy for a system of given radius and energy (Bekenstein bound).

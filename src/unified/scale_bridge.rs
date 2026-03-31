@@ -11,7 +11,7 @@ use tracing::warn;
 
 use crate::constants::{ALPHA, ALPHA_S_MZ, M_Z_GEV};
 use crate::cosmology::friedmann::CosmologicalParameters;
-use crate::error::{ensure_finite, require_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, require_finite};
 use crate::quantum_field::coupling::{
     running_coupling_qcd_analytic, running_coupling_qed_analytic,
 };
@@ -51,18 +51,17 @@ impl BridgeOutput {
     /// Compute the full bridge output at redshift z.
     ///
     /// Convergence rate is estimated by finite difference with Δz = 0.01.
-    pub fn at_redshift(
-        params: &CosmologicalParameters,
-        z: f64,
-    ) -> Result<Self, MimamsaError> {
+    pub fn at_redshift(params: &CosmologicalParameters, z: f64) -> Result<Self, MimamsaError> {
         let intensity = bridge_scale_6(params, z)?;
         let phase = bridge_scale_7(params, z)?;
         let unity_param = 1.0 - intensity;
 
         let dz = 0.01;
         let intensity_plus = bridge_scale_6(params, z + dz)?;
-        let convergence_rate =
-            ensure_finite(((intensity - intensity_plus) / dz).abs(), "BridgeOutput::convergence_rate")?;
+        let convergence_rate = ensure_finite(
+            ((intensity - intensity_plus) / dz).abs(),
+            "BridgeOutput::convergence_rate",
+        )?;
 
         Ok(Self {
             intensity,
@@ -374,10 +373,7 @@ pub fn bridge_scale_5() -> Result<f64, MimamsaError> {
 ///
 /// Maps the cosmos's thermodynamic distance from equilibrium into a scalar
 /// that modulates all manifestation at that epoch.
-pub fn bridge_scale_6(
-    params: &CosmologicalParameters,
-    z: f64,
-) -> Result<f64, MimamsaError> {
+pub fn bridge_scale_6(params: &CosmologicalParameters, z: f64) -> Result<f64, MimamsaError> {
     manifestation_intensity(params, z)
 }
 
@@ -390,10 +386,7 @@ pub fn bridge_scale_6(
 /// For ΛCDM (monotonic expansion) this equals Scale 6. In future cyclic
 /// cosmology extensions, Scale 7 would incorporate the oscillation phase
 /// of successive cosmic cycles.
-pub fn bridge_scale_7(
-    params: &CosmologicalParameters,
-    z: f64,
-) -> Result<f64, MimamsaError> {
+pub fn bridge_scale_7(params: &CosmologicalParameters, z: f64) -> Result<f64, MimamsaError> {
     // For ΛCDM, phase = intensity. Separated for future cyclic extensions.
     manifestation_intensity(params, z)
 }
@@ -480,14 +473,16 @@ mod tests {
 
     /// Spread: one planet per sign starting at Aries
     fn spread_signs() -> [f64; 10] {
-        [5.0, 35.0, 65.0, 95.0, 125.0, 155.0, 185.0, 215.0, 245.0, 275.0]
+        [
+            5.0, 35.0, 65.0, 95.0, 125.0, 155.0, 185.0, 215.0, 245.0, 275.0,
+        ]
     }
 
     /// Equal 30° house cusps
     fn equal_cusps() -> [f64; 12] {
         let mut cusps = [0.0; 12];
-        for i in 0..12 {
-            cusps[i] = i as f64 * 30.0;
+        for (i, cusp) in cusps.iter_mut().enumerate() {
+            *cusp = i as f64 * 30.0;
         }
         cusps
     }
@@ -495,7 +490,10 @@ mod tests {
     #[test]
     fn test_element_balance_all_fire() {
         let elem = element_balance(&all_aries()).unwrap();
-        assert!((elem[0] - 1.0).abs() < 1e-10, "all-Aries should be 100% Fire");
+        assert!(
+            (elem[0] - 1.0).abs() < 1e-10,
+            "all-Aries should be 100% Fire"
+        );
         assert!(elem[1].abs() < 1e-10);
     }
 
@@ -580,13 +578,8 @@ mod tests {
 
     #[test]
     fn test_bridge_scale_3_serde() {
-        let field = bridge_scale_3(
-            &spread_signs(),
-            &equal_cusps(),
-            &[(90.0, 0.8)],
-            &[1.0; 10],
-        )
-        .unwrap();
+        let field =
+            bridge_scale_3(&spread_signs(), &equal_cusps(), &[(90.0, 0.8)], &[1.0; 10]).unwrap();
         let json = serde_json::to_string(&field).unwrap();
         let _back: PlanetaryField = serde_json::from_str(&json).unwrap();
     }

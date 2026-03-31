@@ -26,9 +26,8 @@ const HOSTILE: [f64; 10] = [
 
 /// A Result-returning function must not panic. If Ok, value must be finite.
 fn assert_result_sound(r: Result<f64, hisab_mimamsa::MimamsaError>, ctx: &str) {
-    match r {
-        Ok(v) => assert!(v.is_finite(), "{ctx}: returned non-finite Ok({v})"),
-        Err(_) => {} // error is always acceptable
+    if let Ok(v) = r {
+        assert!(v.is_finite(), "{ctx}: returned non-finite Ok({v})");
     }
 }
 
@@ -266,15 +265,27 @@ fn fuzz_surface_gravity() {
 fn fuzz_black_hole_properties() {
     for &m in &HOSTILE {
         let r = black_hole::BlackHoleProperties::from_mass(m);
-        match r {
-            Ok(p) => {
-                assert!(p.radius_m.is_finite(), "BlackHoleProperties({m}).radius_m non-finite");
-                assert!(p.temperature_k.is_finite(), "BlackHoleProperties({m}).temperature_k non-finite");
-                assert!(p.entropy_j_per_k.is_finite(), "BlackHoleProperties({m}).entropy_j_per_k non-finite");
-                assert!(p.evaporation_time_s.is_finite(), "BlackHoleProperties({m}).evaporation_time_s non-finite");
-                assert!(p.surface_gravity_m_s2.is_finite(), "BlackHoleProperties({m}).surface_gravity_m_s2 non-finite");
-            }
-            Err(_) => {} // error is always acceptable
+        if let Ok(p) = r {
+            assert!(
+                p.radius_m.is_finite(),
+                "BlackHoleProperties({m}).radius_m non-finite"
+            );
+            assert!(
+                p.temperature_k.is_finite(),
+                "BlackHoleProperties({m}).temperature_k non-finite"
+            );
+            assert!(
+                p.entropy_j_per_k.is_finite(),
+                "BlackHoleProperties({m}).entropy_j_per_k non-finite"
+            );
+            assert!(
+                p.evaporation_time_s.is_finite(),
+                "BlackHoleProperties({m}).evaporation_time_s non-finite"
+            );
+            assert!(
+                p.surface_gravity_m_s2.is_finite(),
+                "BlackHoleProperties({m}).surface_gravity_m_s2 non-finite"
+            );
         }
     }
 }
@@ -365,9 +376,11 @@ mod cosmology_fuzz {
 
         // z_max = 0
         let a = friedmann::age_of_universe(&params(), 0.0, 100);
-        match a {
-            Ok(v) => assert!((v - 0.0).abs() < f64::EPSILON, "age_of_universe(z_max=0) should be 0"),
-            Err(_) => {} // error is acceptable
+        if let Ok(v) = a {
+            assert!(
+                (v - 0.0).abs() < f64::EPSILON,
+                "age_of_universe(z_max=0) should be 0"
+            );
         }
 
         // hostile z_max
@@ -456,18 +469,15 @@ mod cosmology_fuzz {
 #[cfg(feature = "qft")]
 mod qft_fuzz {
     use super::*;
-    use hisab_mimamsa::quantum_field::{propagator, vacuum, coupling, feynman, FourMomentum};
+    use hisab_mimamsa::quantum_field::{FourMomentum, coupling, feynman, propagator, vacuum};
 
     #[test]
     fn fuzz_four_momentum_new() {
         for &h in &HOSTILE {
             let r = FourMomentum::new(h, h, h, h);
-            match r {
-                Ok(fm) => {
-                    let m2 = fm.invariant_mass_sq();
-                    assert_result_sound(m2, &format!("FourMomentum::new({h}).invariant_mass_sq"));
-                }
-                Err(_) => {}
+            if let Ok(fm) = r {
+                let m2 = fm.invariant_mass_sq();
+                assert_result_sound(m2, &format!("FourMomentum::new({h}).invariant_mass_sq"));
             }
         }
     }
@@ -478,17 +488,19 @@ mod qft_fuzz {
         for &h in &HOSTILE {
             // hostile mass
             let r = propagator::scalar_propagator(&p, h, propagator::DEFAULT_EPSILON);
-            match r {
-                Ok(c) => assert!(c.re.is_finite() && c.im.is_finite(),
-                    "scalar_propagator(mass={h}): non-finite Ok"),
-                Err(_) => {}
+            if let Ok(c) = r {
+                assert!(
+                    c.re.is_finite() && c.im.is_finite(),
+                    "scalar_propagator(mass={h}): non-finite Ok"
+                );
             }
             // hostile epsilon
             let r = propagator::scalar_propagator(&p, 1.0, h);
-            match r {
-                Ok(c) => assert!(c.re.is_finite() && c.im.is_finite(),
-                    "scalar_propagator(eps={h}): non-finite Ok"),
-                Err(_) => {}
+            if let Ok(c) = r {
+                assert!(
+                    c.re.is_finite() && c.im.is_finite(),
+                    "scalar_propagator(eps={h}): non-finite Ok"
+                );
             }
         }
     }
@@ -498,10 +510,11 @@ mod qft_fuzz {
         let k = FourMomentum::new(10.0, 5.0, 0.0, 0.0).unwrap();
         for &h in &HOSTILE {
             let r = propagator::gauge_boson_propagator(&k, h);
-            match r {
-                Ok(c) => assert!(c.re.is_finite() && c.im.is_finite(),
-                    "gauge_boson_propagator(eps={h}): non-finite Ok"),
-                Err(_) => {}
+            if let Ok(c) = r {
+                assert!(
+                    c.re.is_finite() && c.im.is_finite(),
+                    "gauge_boson_propagator(eps={h}): non-finite Ok"
+                );
             }
         }
     }
@@ -580,11 +593,20 @@ mod qft_fuzz {
     fn fuzz_running_coupling_qcd_analytic() {
         for &h in &HOSTILE {
             let r1 = coupling::running_coupling_qcd_analytic(h, 91.0, 200.0, 6);
-            assert_result_sound(r1, &format!("running_coupling_qcd_analytic({h}, 91, 200, 6)"));
+            assert_result_sound(
+                r1,
+                &format!("running_coupling_qcd_analytic({h}, 91, 200, 6)"),
+            );
             let r2 = coupling::running_coupling_qcd_analytic(0.1179, h, 200.0, 6);
-            assert_result_sound(r2, &format!("running_coupling_qcd_analytic(αs, {h}, 200, 6)"));
+            assert_result_sound(
+                r2,
+                &format!("running_coupling_qcd_analytic(αs, {h}, 200, 6)"),
+            );
             let r3 = coupling::running_coupling_qcd_analytic(0.1179, 91.0, h, 6);
-            assert_result_sound(r3, &format!("running_coupling_qcd_analytic(αs, 91, {h}, 6)"));
+            assert_result_sound(
+                r3,
+                &format!("running_coupling_qcd_analytic(αs, 91, {h}, 6)"),
+            );
         }
     }
 
@@ -625,8 +647,8 @@ mod qft_fuzz {
 #[cfg(feature = "unified")]
 mod unified_fuzz {
     use super::*;
-    use hisab_mimamsa::unified::{holographic, fixed_point, scale_bridge};
     use hisab_mimamsa::cosmology::friedmann::CosmologicalParameters;
+    use hisab_mimamsa::unified::{fixed_point, holographic, scale_bridge};
 
     fn params() -> CosmologicalParameters {
         CosmologicalParameters::planck2018()

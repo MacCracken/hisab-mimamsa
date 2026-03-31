@@ -1,7 +1,7 @@
 //! Quantum field theory — propagators, running couplings, Casimir effect.
 
 use hisab_mimamsa::constants::{ALPHA, ALPHA_S_MZ, M_Z_GEV};
-use hisab_mimamsa::quantum_field::{coupling, propagator, vacuum, FourMomentum};
+use hisab_mimamsa::quantum_field::{FourMomentum, coupling, propagator, vacuum};
 
 fn main() {
     // Scalar propagator: on-shell vs off-shell

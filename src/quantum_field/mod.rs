@@ -61,7 +61,7 @@ pub mod vacuum;
 
 use serde::{Deserialize, Serialize};
 
-use crate::error::{ensure_finite, require_all_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, require_all_finite};
 
 /// Classification of quantum fields.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

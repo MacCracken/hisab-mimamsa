@@ -45,11 +45,8 @@ fn boost_preserves_interval_at_multiple_velocities() {
 fn velocity_addition_never_exceeds_c() {
     for u_frac in [0.1, 0.5, 0.9, 0.99, 0.999] {
         for v_frac in [0.1, 0.5, 0.9, 0.99, 0.999] {
-            let result = lorentz::velocity_addition(
-                u_frac * lorentz::C,
-                v_frac * lorentz::C,
-            )
-            .unwrap();
+            let result =
+                lorentz::velocity_addition(u_frac * lorentz::C, v_frac * lorentz::C).unwrap();
             assert!(
                 result < lorentz::C,
                 "v_add({u_frac}c, {v_frac}c) = {result} >= c"
@@ -162,14 +159,8 @@ mod cosmology_invariants {
             let d_a = expansion::angular_diameter_distance(&p, z, 1000).unwrap();
             let d_c = expansion::comoving_distance(&p, z, 1000).unwrap();
             let d_l = expansion::luminosity_distance(&p, z, 1000).unwrap();
-            assert!(
-                d_a < d_c,
-                "d_A >= d_C at z={z}: {d_a} >= {d_c}"
-            );
-            assert!(
-                d_c < d_l,
-                "d_C >= d_L at z={z}: {d_c} >= {d_l}"
-            );
+            assert!(d_a < d_c, "d_A >= d_C at z={z}: {d_a} >= {d_c}");
+            assert!(d_c < d_l, "d_C >= d_L at z={z}: {d_c} >= {d_l}");
         }
     }
 
@@ -231,7 +222,10 @@ mod cosmology_invariants {
             .map(|&z| expansion::comoving_distance(&p, z, 1000).unwrap())
             .collect();
         for w in ds.windows(2) {
-            assert!(w[1] > w[0], "comoving distance not monotonically increasing");
+            assert!(
+                w[1] > w[0],
+                "comoving distance not monotonically increasing"
+            );
         }
     }
 }
@@ -241,7 +235,7 @@ mod cosmology_invariants {
 #[cfg(feature = "qft")]
 mod qft_invariants {
     use hisab_mimamsa::constants::{ALPHA, ALPHA_S_MZ, M_Z_GEV};
-    use hisab_mimamsa::quantum_field::{propagator, vacuum, coupling, feynman, FourMomentum};
+    use hisab_mimamsa::quantum_field::{FourMomentum, coupling, feynman, propagator, vacuum};
 
     #[test]
     fn propagator_symmetry_p_equals_neg_p() {
@@ -255,11 +249,16 @@ mod qft_invariants {
             let p = FourMomentum::new(e, px, py, pz).unwrap();
             let neg_p = FourMomentum::new(-e, -px, -py, -pz).unwrap();
             let d1 = propagator::scalar_propagator(&p, 1.0, propagator::DEFAULT_EPSILON).unwrap();
-            let d2 = propagator::scalar_propagator(&neg_p, 1.0, propagator::DEFAULT_EPSILON).unwrap();
-            assert!((d1.re - d2.re).abs() < 1e-12,
-                "propagator symmetry failed (re) for p=({e},{px},{py},{pz})");
-            assert!((d1.im - d2.im).abs() < 1e-12,
-                "propagator symmetry failed (im) for p=({e},{px},{py},{pz})");
+            let d2 =
+                propagator::scalar_propagator(&neg_p, 1.0, propagator::DEFAULT_EPSILON).unwrap();
+            assert!(
+                (d1.re - d2.re).abs() < 1e-12,
+                "propagator symmetry failed (re) for p=({e},{px},{py},{pz})"
+            );
+            assert!(
+                (d1.im - d2.im).abs() < 1e-12,
+                "propagator symmetry failed (im) for p=({e},{px},{py},{pz})"
+            );
         }
     }
 
@@ -296,7 +295,10 @@ mod qft_invariants {
     fn casimir_force_always_attractive() {
         for &d in &[1e-9, 1e-7, 1e-6, 1e-5, 1e-3, 1.0] {
             let f = vacuum::casimir_force_per_area(d).unwrap();
-            assert!(f < 0.0, "Casimir force should be negative (attractive) at d={d}, got {f}");
+            assert!(
+                f < 0.0,
+                "Casimir force should be negative (attractive) at d={d}, got {f}"
+            );
         }
     }
 
@@ -335,8 +337,12 @@ mod qft_invariants {
             let u = feynman::mandelstam_u(&p1, &p4).unwrap();
 
             let ok = feynman::verify_mandelstam_identity(s, t, u, masses).unwrap();
-            assert!(ok, "Mandelstam identity failed: s+t+u={}, Σm²={}",
-                s + t + u, masses.iter().map(|m| m * m).sum::<f64>());
+            assert!(
+                ok,
+                "Mandelstam identity failed: s+t+u={}, Σm²={}",
+                s + t + u,
+                masses.iter().map(|m| m * m).sum::<f64>()
+            );
         }
     }
 
@@ -345,11 +351,15 @@ mod qft_invariants {
         for &m2 in &[0.01, 0.1, 1.0, 10.0, 100.0] {
             for &s in &[10.0, 100.0, 1000.0] {
                 let sigma = feynman::total_cross_section_2to2_massless(m2, s).unwrap();
-                assert!(sigma > 0.0,
-                    "cross-section should be positive for |M|²={m2}, s={s}, got {sigma}");
+                assert!(
+                    sigma > 0.0,
+                    "cross-section should be positive for |M|²={m2}, s={s}, got {sigma}"
+                );
                 let dsigma = feynman::differential_cross_section_2to2(m2, s).unwrap();
-                assert!(dsigma > 0.0,
-                    "diff cross-section should be positive for |M|²={m2}, s={s}, got {dsigma}");
+                assert!(
+                    dsigma > 0.0,
+                    "diff cross-section should be positive for |M|²={m2}, s={s}, got {dsigma}"
+                );
             }
         }
     }
@@ -359,10 +369,10 @@ mod qft_invariants {
 
 #[cfg(feature = "unified")]
 mod unified_invariants {
-    use std::f64::consts::PI;
     use hisab_mimamsa::cosmology::friedmann::CosmologicalParameters;
     use hisab_mimamsa::relativity::{black_hole, metric};
-    use hisab_mimamsa::unified::{holographic, fixed_point, scale_bridge};
+    use hisab_mimamsa::unified::{fixed_point, holographic, scale_bridge};
+    use std::f64::consts::PI;
 
     const M_SUN: f64 = 1.989e30;
 
@@ -393,7 +403,10 @@ mod unified_invariants {
         let r100 = fixed_point::entropy_ratio(&p, 100.0).unwrap();
         assert!(r0 > r1, "ratio at z=0 ({r0}) should exceed z=1 ({r1})");
         assert!(r1 > r10, "ratio at z=1 ({r1}) should exceed z=10 ({r10})");
-        assert!(r10 > r100, "ratio at z=10 ({r10}) should exceed z=100 ({r100})");
+        assert!(
+            r10 > r100,
+            "ratio at z=10 ({r10}) should exceed z=100 ({r100})"
+        );
     }
 
     #[test]

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use tracing::warn;
 
 use crate::cosmology::friedmann::CosmologicalParameters;
-use crate::error::{ensure_finite, require_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, require_finite};
 
 /// Which energy component dominates the expansion at a given epoch.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -37,10 +37,7 @@ pub struct FixedPointState {
 
 impl FixedPointState {
     /// Compute the full fixed-point state at redshift z.
-    pub fn at_redshift(
-        params: &CosmologicalParameters,
-        z: f64,
-    ) -> Result<Self, MimamsaError> {
+    pub fn at_redshift(params: &CosmologicalParameters, z: f64) -> Result<Self, MimamsaError> {
         let phase = cosmic_phase(params, z)?;
         let e_ratio = entropy_ratio(params, z)?;
         let intensity = manifestation_intensity(params, z)?;
@@ -58,10 +55,7 @@ impl FixedPointState {
 ///
 /// Compares Ω_r(1+z)⁴, Ω_m(1+z)³, and Ω_Λ to find the largest
 /// contributor to H²(z).
-pub fn cosmic_phase(
-    params: &CosmologicalParameters,
-    z: f64,
-) -> Result<CosmicPhase, MimamsaError> {
+pub fn cosmic_phase(params: &CosmologicalParameters, z: f64) -> Result<CosmicPhase, MimamsaError> {
     require_finite(z, "cosmic_phase")?;
     if z < -1.0 {
         warn!(z, "cosmic_phase: z < -1 is unphysical");
@@ -92,10 +86,7 @@ pub fn cosmic_phase(
 /// in the ratio.
 ///
 /// Returns a value in [0, 1] that increases monotonically toward the future.
-pub fn entropy_ratio(
-    params: &CosmologicalParameters,
-    z: f64,
-) -> Result<f64, MimamsaError> {
+pub fn entropy_ratio(params: &CosmologicalParameters, z: f64) -> Result<f64, MimamsaError> {
     require_finite(z, "entropy_ratio")?;
     if z < -1.0 {
         return Err(MimamsaError::InvalidCosmology(
@@ -107,10 +98,8 @@ pub fn entropy_ratio(
     let z3 = z2 * z1;
     let z4 = z3 * z1;
 
-    let denom = params.omega_r * z4
-        + params.omega_m * z3
-        + params.omega_k * z2
-        + params.omega_lambda;
+    let denom =
+        params.omega_r * z4 + params.omega_m * z3 + params.omega_k * z2 + params.omega_lambda;
 
     if denom <= 0.0 {
         return Err(MimamsaError::Computation(

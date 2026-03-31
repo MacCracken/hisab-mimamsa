@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use tracing::warn;
 
-use crate::error::{ensure_finite, require_all_finite, require_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, require_all_finite, require_finite};
 
 // Re-export from centralized constants for backward compatibility.
 pub use crate::constants::{C, G};
@@ -36,7 +36,10 @@ pub fn gravitational_time_dilation(mass_kg: f64, r: f64) -> Result<f64, MimamsaE
 #[inline]
 pub fn gravitational_redshift(mass_kg: f64, r_emit: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[mass_kg, r_emit], "gravitational_redshift")?;
-    ensure_finite(1.0 / gravitational_time_dilation(mass_kg, r_emit)?, "gravitational_redshift")
+    ensure_finite(
+        1.0 / gravitational_time_dilation(mass_kg, r_emit)?,
+        "gravitational_redshift",
+    )
 }
 
 /// ISCO (innermost stable circular orbit) for Schwarzschild: r_isco = 3r_s.
@@ -66,7 +69,10 @@ pub fn schwarzschild_orbital_velocity(mass_kg: f64, r: f64) -> Result<f64, Mimam
         });
     }
     let v_newton = (G * mass_kg / r).sqrt();
-    ensure_finite(v_newton / (1.0 - rs / r).sqrt(), "schwarzschild_orbital_velocity")
+    ensure_finite(
+        v_newton / (1.0 - rs / r).sqrt(),
+        "schwarzschild_orbital_velocity",
+    )
 }
 
 /// Metric signature for classification.

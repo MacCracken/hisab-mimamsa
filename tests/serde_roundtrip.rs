@@ -12,11 +12,14 @@ use hisab_mimamsa::cosmology::friedmann::CosmologicalParameters;
 
 const M_SUN: f64 = 1.989e30;
 
-fn roundtrip_json<T: serde::Serialize + serde::de::DeserializeOwned + std::fmt::Debug + PartialEq>(
+fn roundtrip_json<
+    T: serde::Serialize + serde::de::DeserializeOwned + std::fmt::Debug + PartialEq,
+>(
     val: &T,
     name: &str,
 ) {
-    let json = serde_json::to_string(val).unwrap_or_else(|e| panic!("{name}: serialize failed: {e}"));
+    let json =
+        serde_json::to_string(val).unwrap_or_else(|e| panic!("{name}: serialize failed: {e}"));
     let back: T =
         serde_json::from_str(&json).unwrap_or_else(|e| panic!("{name}: deserialize failed: {e}"));
     assert_eq!(*val, back, "{name}: roundtrip mismatch");
@@ -26,7 +29,8 @@ fn roundtrip_json_no_eq<T: serde::Serialize + serde::de::DeserializeOwned + std:
     val: &T,
     name: &str,
 ) {
-    let json = serde_json::to_string(val).unwrap_or_else(|e| panic!("{name}: serialize failed: {e}"));
+    let json =
+        serde_json::to_string(val).unwrap_or_else(|e| panic!("{name}: serialize failed: {e}"));
     let _back: T =
         serde_json::from_str(&json).unwrap_or_else(|e| panic!("{name}: deserialize failed: {e}"));
 }
@@ -39,7 +43,11 @@ fn roundtrip_four_vector() {
 
 #[test]
 fn roundtrip_interval_type() {
-    for it in [IntervalType::Timelike, IntervalType::Lightlike, IntervalType::Spacelike] {
+    for it in [
+        IntervalType::Timelike,
+        IntervalType::Lightlike,
+        IntervalType::Spacelike,
+    ] {
         roundtrip_json(&it, &format!("IntervalType::{it:?}"));
     }
 }
@@ -57,7 +65,11 @@ fn roundtrip_geodesic_point() {
 
 #[test]
 fn roundtrip_geodesic_type() {
-    for gt in [GeodesicType::Timelike, GeodesicType::Null, GeodesicType::Spacelike] {
+    for gt in [
+        GeodesicType::Timelike,
+        GeodesicType::Null,
+        GeodesicType::Spacelike,
+    ] {
         roundtrip_json(&gt, &format!("GeodesicType::{gt:?}"));
     }
 }
@@ -101,7 +113,7 @@ fn roundtrip_cosmological_parameters() {
 mod qft_serde {
     use super::*;
     use hisab_mimamsa::quantum_field::{
-        FourMomentum, FieldType, GaugeChoice,
+        FieldType, FourMomentum, GaugeChoice,
         coupling::CouplingAnalysis,
         feynman::{ParticleType, Vertex},
     };
@@ -126,7 +138,11 @@ mod qft_serde {
 
     #[test]
     fn roundtrip_particle_type() {
-        for pt in [ParticleType::Scalar, ParticleType::Fermion, ParticleType::Photon] {
+        for pt in [
+            ParticleType::Scalar,
+            ParticleType::Fermion,
+            ParticleType::Photon,
+        ] {
             roundtrip_json(&pt, &format!("ParticleType::{pt:?}"));
         }
     }
@@ -146,7 +162,11 @@ mod qft_serde {
     fn roundtrip_vertex() {
         let v = Vertex {
             coupling: 0.3,
-            particles: vec![ParticleType::Fermion, ParticleType::Fermion, ParticleType::Photon],
+            particles: vec![
+                ParticleType::Fermion,
+                ParticleType::Fermion,
+                ParticleType::Photon,
+            ],
         };
         roundtrip_json_no_eq(&v, "Vertex");
     }

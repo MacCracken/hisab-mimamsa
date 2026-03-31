@@ -10,7 +10,7 @@ use std::f64::consts::PI;
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 
-use crate::error::{ensure_finite, require_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, require_finite};
 
 /// QED one-loop β-function: β(α) = 2α²/(3π).
 ///
@@ -34,10 +34,7 @@ pub fn beta_qed_one_loop(alpha: f64) -> Result<f64, MimamsaError> {
 pub fn beta_qcd_one_loop(alpha_s: f64, n_f: u8) -> Result<f64, MimamsaError> {
     require_finite(alpha_s, "beta_qcd_one_loop")?;
     let b0 = 33.0 - 2.0 * f64::from(n_f);
-    ensure_finite(
-        -b0 * alpha_s * alpha_s / (12.0 * PI),
-        "beta_qcd_one_loop",
-    )
+    ensure_finite(-b0 * alpha_s * alpha_s / (12.0 * PI), "beta_qcd_one_loop")
 }
 
 /// Returns true if QCD is asymptotically free for the given number of flavors.
@@ -159,7 +156,10 @@ pub fn running_coupling_qed_analytic(
     let log_ratio = (mu_gev / mu_0_gev).ln();
     let denom = 1.0 - 2.0 * alpha_0 / (3.0 * PI) * log_ratio;
     if denom <= 0.0 {
-        warn!(alpha_0, mu_0_gev, mu_gev, denom, "QED Landau pole encountered");
+        warn!(
+            alpha_0,
+            mu_0_gev, mu_gev, denom, "QED Landau pole encountered"
+        );
         return Err(MimamsaError::Divergence {
             context: "running_coupling_qed_analytic".to_string(),
             detail: "Landau pole encountered".to_string(),
@@ -190,7 +190,10 @@ pub fn running_coupling_qcd_analytic(
     let log_ratio = (mu_gev / mu_0_gev).ln();
     let denom = 1.0 + b0 * alpha_s_0 * log_ratio / (2.0 * PI);
     if denom <= 0.0 {
-        warn!(alpha_s_0, mu_0_gev, mu_gev, n_f, denom, "QCD infrared Landau pole encountered");
+        warn!(
+            alpha_s_0,
+            mu_0_gev, mu_gev, n_f, denom, "QCD infrared Landau pole encountered"
+        );
         return Err(MimamsaError::Divergence {
             context: "running_coupling_qcd_analytic".to_string(),
             detail: "infrared Landau pole encountered".to_string(),
@@ -257,23 +260,15 @@ mod tests {
         let a_analytic = running_coupling_qed_analytic(ALPHA, M_Z_GEV, 200.0).unwrap();
         let a_numerical = running_coupling_qed(ALPHA, M_Z_GEV, 200.0, 10000).unwrap();
         let rel_diff = (a_analytic - a_numerical).abs() / a_analytic;
-        assert!(
-            rel_diff < 0.01,
-            "analytic vs numerical QED: {rel_diff:.4e}"
-        );
+        assert!(rel_diff < 0.01, "analytic vs numerical QED: {rel_diff:.4e}");
     }
 
     #[test]
     fn test_analytic_vs_numerical_qcd() {
-        let a_analytic =
-            running_coupling_qcd_analytic(ALPHA_S_MZ, M_Z_GEV, 1000.0, 6).unwrap();
-        let a_numerical =
-            running_coupling_qcd(ALPHA_S_MZ, M_Z_GEV, 1000.0, 6, 10000).unwrap();
+        let a_analytic = running_coupling_qcd_analytic(ALPHA_S_MZ, M_Z_GEV, 1000.0, 6).unwrap();
+        let a_numerical = running_coupling_qcd(ALPHA_S_MZ, M_Z_GEV, 1000.0, 6, 10000).unwrap();
         let rel_diff = (a_analytic - a_numerical).abs() / a_analytic;
-        assert!(
-            rel_diff < 0.01,
-            "analytic vs numerical QCD: {rel_diff:.4e}"
-        );
+        assert!(rel_diff < 0.01, "analytic vs numerical QCD: {rel_diff:.4e}");
     }
 
     #[test]

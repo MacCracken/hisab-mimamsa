@@ -3,26 +3,28 @@
 use tracing::warn;
 
 use crate::constants::{C, G};
-use crate::error::{ensure_finite, require_finite, require_all_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, require_all_finite, require_finite};
 
 /// Einstein ring angular radius (radians).
 /// θ_E = √(4GM * D_ls / (c² * D_l * D_s))
 /// where D_l = lens distance, D_s = source distance, D_ls = lens-source distance.
 #[inline]
-pub fn einstein_ring_radius(
-    mass_kg: f64,
-    d_lens: f64,
-    d_source: f64,
-) -> Result<f64, MimamsaError> {
+pub fn einstein_ring_radius(mass_kg: f64, d_lens: f64, d_source: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[mass_kg, d_lens, d_source], "einstein_ring_radius")?;
     let d_ls = d_source - d_lens;
     if d_lens <= 0.0 || d_source <= 0.0 || d_ls <= 0.0 {
-        warn!(d_lens, d_source, d_ls, "invalid lensing geometry for Einstein ring");
+        warn!(
+            d_lens,
+            d_source, d_ls, "invalid lensing geometry for Einstein ring"
+        );
         return Err(MimamsaError::Computation(format!(
             "invalid lensing geometry: d_lens={d_lens:.3e}, d_source={d_source:.3e}"
         )));
     }
-    ensure_finite((4.0 * G * mass_kg * d_ls / (C * C * d_lens * d_source)).sqrt(), "einstein_ring_radius")
+    ensure_finite(
+        (4.0 * G * mass_kg * d_ls / (C * C * d_lens * d_source)).sqrt(),
+        "einstein_ring_radius",
+    )
 }
 
 /// Point-source magnification for a point lens.
@@ -35,25 +37,31 @@ pub fn point_lens_magnification(u: f64) -> Result<f64, MimamsaError> {
         return Ok(f64::INFINITY); // perfect alignment → infinite magnification (point source)
     }
     let u2 = u * u;
-    ensure_finite((u2 + 2.0) / (u * (u2 + 4.0).sqrt()), "point_lens_magnification")
+    ensure_finite(
+        (u2 + 2.0) / (u * (u2 + 4.0).sqrt()),
+        "point_lens_magnification",
+    )
 }
 
 /// Critical surface density for lensing (kg/m²).
 /// Σ_cr = c²D_s / (4πGD_lD_ls)
 #[inline]
-pub fn critical_surface_density(
-    d_lens: f64,
-    d_source: f64,
-) -> Result<f64, MimamsaError> {
+pub fn critical_surface_density(d_lens: f64, d_source: f64) -> Result<f64, MimamsaError> {
     require_all_finite(&[d_lens, d_source], "critical_surface_density")?;
     let d_ls = d_source - d_lens;
     if d_lens <= 0.0 || d_source <= 0.0 || d_ls <= 0.0 {
-        warn!(d_lens, d_source, d_ls, "invalid lensing geometry for critical density");
+        warn!(
+            d_lens,
+            d_source, d_ls, "invalid lensing geometry for critical density"
+        );
         return Err(MimamsaError::Computation(format!(
             "invalid lensing geometry: d_lens={d_lens:.3e}, d_source={d_source:.3e}"
         )));
     }
-    ensure_finite(C * C * d_source / (4.0 * std::f64::consts::PI * G * d_lens * d_ls), "critical_surface_density")
+    ensure_finite(
+        C * C * d_source / (4.0 * std::f64::consts::PI * G * d_lens * d_ls),
+        "critical_surface_density",
+    )
 }
 
 #[cfg(test)]

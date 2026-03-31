@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 
-use crate::error::{ensure_finite, require_all_finite, require_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, require_all_finite, require_finite};
 
 // Re-export from centralized constants for backward compatibility.
 pub use crate::constants::{C, C2};

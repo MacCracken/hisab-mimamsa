@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::error::{ensure_finite, require_all_finite, require_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, require_all_finite, require_finite};
 
 /// Hubble constant H₀ (km/s/Mpc → s⁻¹ for internal use).
 pub const H0_KM_S_MPC: f64 = 67.4; // Planck 2018
@@ -66,16 +66,25 @@ pub fn hubble_parameter(params: &CosmologicalParameters, z: f64) -> Result<f64, 
     let z4 = z3 * z1;
 
     let h0_si = params.h0 / MPC_IN_KM;
-    ensure_finite(h0_si
-        * (params.omega_r * z4 + params.omega_m * z3 + params.omega_k * z2 + params.omega_lambda)
-            .sqrt(), "hubble_parameter")
+    ensure_finite(
+        h0_si
+            * (params.omega_r * z4
+                + params.omega_m * z3
+                + params.omega_k * z2
+                + params.omega_lambda)
+                .sqrt(),
+        "hubble_parameter",
+    )
 }
 
 /// Critical density: ρ_c = 3H²/(8πG).
 #[inline]
 pub fn critical_density(h: f64) -> Result<f64, MimamsaError> {
     require_finite(h, "critical_density")?;
-    ensure_finite(3.0 * h * h / (8.0 * std::f64::consts::PI * crate::constants::G), "critical_density")
+    ensure_finite(
+        3.0 * h * h / (8.0 * std::f64::consts::PI * crate::constants::G),
+        "critical_density",
+    )
 }
 
 /// Deceleration parameter q(z) = -1 - Ḣ/H².
@@ -86,12 +95,19 @@ pub fn deceleration_parameter_now(params: &CosmologicalParameters) -> Result<f64
         &[params.omega_m, params.omega_r, params.omega_lambda],
         "deceleration_parameter_now",
     )?;
-    ensure_finite(params.omega_m / 2.0 + params.omega_r - params.omega_lambda, "deceleration_parameter_now")
+    ensure_finite(
+        params.omega_m / 2.0 + params.omega_r - params.omega_lambda,
+        "deceleration_parameter_now",
+    )
 }
 
 /// Age of universe via numerical integration of 1/((1+z)H(z)).
 /// Uses simple trapezoidal rule with n steps from z=0 to z_max.
-pub fn age_of_universe(params: &CosmologicalParameters, z_max: f64, n: usize) -> Result<f64, MimamsaError> {
+pub fn age_of_universe(
+    params: &CosmologicalParameters,
+    z_max: f64,
+    n: usize,
+) -> Result<f64, MimamsaError> {
     require_finite(z_max, "age_of_universe")?;
     if n == 0 {
         return Ok(0.0);

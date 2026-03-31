@@ -5,16 +5,19 @@ use serde::{Deserialize, Serialize};
 use super::metric::schwarzschild_radius;
 
 // Re-export from centralized constants for backward compatibility.
-pub use crate::constants::{HBAR, K_B};
 use crate::constants::{C, G};
-use crate::error::{ensure_finite, require_finite, MimamsaError};
+pub use crate::constants::{HBAR, K_B};
+use crate::error::{MimamsaError, ensure_finite, require_finite};
 
 /// Hawking temperature of a Schwarzschild black hole.
 /// T_H = ℏc³ / (8πGMk_B)
 #[inline]
 pub fn hawking_temperature(mass_kg: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_kg, "hawking_temperature")?;
-    ensure_finite(HBAR * C.powi(3) / (8.0 * std::f64::consts::PI * G * mass_kg * K_B), "hawking_temperature")
+    ensure_finite(
+        HBAR * C.powi(3) / (8.0 * std::f64::consts::PI * G * mass_kg * K_B),
+        "hawking_temperature",
+    )
 }
 
 /// Bekenstein-Hawking entropy: S = k_B * A / (4 * l_P²)
@@ -31,7 +34,10 @@ pub fn bekenstein_hawking_entropy(mass_kg: f64) -> Result<f64, MimamsaError> {
 #[inline]
 pub fn evaporation_time(mass_kg: f64) -> Result<f64, MimamsaError> {
     require_finite(mass_kg, "evaporation_time")?;
-    ensure_finite(5120.0 * std::f64::consts::PI * G * G * mass_kg.powi(3) / (HBAR * C.powi(4)), "evaporation_time")
+    ensure_finite(
+        5120.0 * std::f64::consts::PI * G * G * mass_kg.powi(3) / (HBAR * C.powi(4)),
+        "evaporation_time",
+    )
 }
 
 /// Schwarzschild black hole surface gravity: κ = c⁴/(4GM).

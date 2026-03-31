@@ -13,10 +13,10 @@ use serde::{Deserialize, Serialize};
 
 use tracing::warn;
 
-use crate::error::{ensure_finite, ensure_finite_complex, require_finite, MimamsaError};
+use crate::error::{MimamsaError, ensure_finite, ensure_finite_complex, require_finite};
 
-use super::propagator;
 use super::FourMomentum;
+use super::propagator;
 
 /// Classification of particles in a Feynman diagram.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -114,18 +114,13 @@ pub fn tree_level_amplitude(diagram: &TreeDiagram) -> Result<Complex, MimamsaErr
     // Multiply propagators for each internal line
     for line in &diagram.internal_lines {
         let prop = match line.particle_type {
-            ParticleType::Scalar | ParticleType::Fermion => {
-                propagator::scalar_propagator(
-                    &line.momentum,
-                    line.mass_gev,
-                    propagator::DEFAULT_EPSILON,
-                )?
-            }
+            ParticleType::Scalar | ParticleType::Fermion => propagator::scalar_propagator(
+                &line.momentum,
+                line.mass_gev,
+                propagator::DEFAULT_EPSILON,
+            )?,
             ParticleType::Photon => {
-                propagator::gauge_boson_propagator(
-                    &line.momentum,
-                    propagator::DEFAULT_EPSILON,
-                )?
+                propagator::gauge_boson_propagator(&line.momentum, propagator::DEFAULT_EPSILON)?
             }
         };
         amplitude *= prop;
@@ -270,10 +265,26 @@ mod tests {
             vertices: vec![],
             internal_lines: vec![],
             external_lines: vec![
-                ExternalLine { particle_type: ParticleType::Fermion, momentum: p1, incoming: true },
-                ExternalLine { particle_type: ParticleType::Fermion, momentum: p2, incoming: true },
-                ExternalLine { particle_type: ParticleType::Fermion, momentum: p3, incoming: false },
-                ExternalLine { particle_type: ParticleType::Fermion, momentum: p4, incoming: false },
+                ExternalLine {
+                    particle_type: ParticleType::Fermion,
+                    momentum: p1,
+                    incoming: true,
+                },
+                ExternalLine {
+                    particle_type: ParticleType::Fermion,
+                    momentum: p2,
+                    incoming: true,
+                },
+                ExternalLine {
+                    particle_type: ParticleType::Fermion,
+                    momentum: p3,
+                    incoming: false,
+                },
+                ExternalLine {
+                    particle_type: ParticleType::Fermion,
+                    momentum: p4,
+                    incoming: false,
+                },
             ],
         };
         assert!(diagram.check_momentum_conservation().unwrap());
@@ -285,8 +296,22 @@ mod tests {
         let k = FourMomentum::new(10.0, 5.0, 3.0, 0.0).unwrap();
         let diagram = TreeDiagram {
             vertices: vec![
-                Vertex { coupling: 0.3, particles: vec![ParticleType::Fermion, ParticleType::Fermion, ParticleType::Photon] },
-                Vertex { coupling: 0.3, particles: vec![ParticleType::Fermion, ParticleType::Fermion, ParticleType::Photon] },
+                Vertex {
+                    coupling: 0.3,
+                    particles: vec![
+                        ParticleType::Fermion,
+                        ParticleType::Fermion,
+                        ParticleType::Photon,
+                    ],
+                },
+                Vertex {
+                    coupling: 0.3,
+                    particles: vec![
+                        ParticleType::Fermion,
+                        ParticleType::Fermion,
+                        ParticleType::Photon,
+                    ],
+                },
             ],
             internal_lines: vec![InternalLine {
                 particle_type: ParticleType::Photon,
