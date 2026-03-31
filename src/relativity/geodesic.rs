@@ -147,8 +147,7 @@ mod tests {
     #[test]
     fn test_effective_potential_spacelike_geodesic() {
         let rs = 2953.0;
-        let v =
-            schwarzschild_effective_potential(rs, 1e10, 1e8, GeodesicType::Spacelike).unwrap();
+        let v = schwarzschild_effective_potential(rs, 1e10, 1e8, GeodesicType::Spacelike).unwrap();
         assert!(v.is_finite());
     }
 }
