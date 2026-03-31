@@ -485,14 +485,137 @@ pub fn bridge_scale_4(
     })
 }
 
-// ── Scale 5 stub ───────────────────────────────────────────────────────
+// ── Scale 5: Galactic field ─────────────────────────────────────────────
 
-/// bhava Scale 5 bridge stub: galactic structure → civilizational personality fields.
+/// Galactic field state — Scale 5 bridge output for bhava/soorat.
 ///
-/// Placeholder returning 0.5 (neutral) until large-scale structure data is available.
-#[inline]
-pub fn bridge_scale_5() -> Result<f64, MimamsaError> {
-    Ok(0.5)
+/// Dependency-free: computed from f64 primitives (brahmanda galactic properties).
+/// The caller computes galactic properties with brahmanda, then passes results
+/// through this bridge function.
+///
+/// All scalar fields are normalized ∈ [0, 1].
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct GalacticField {
+    /// Halo concentration ∈ [0, 1]. Normalized NFW concentration parameter.
+    /// 0 = diffuse (c ~ 3), 1 = highly concentrated (c ~ 20).
+    /// Maps to personality cohesion vs dispersal.
+    pub concentration: f64,
+    /// Density pressure ∈ [0, 1]. Normalized density contrast δ.
+    /// 0 = deep void (δ = -1), 0.5 = mean density (δ = 0), 1 = extreme overdensity.
+    /// Maps to environmental pressure on civilizational field.
+    pub density_pressure: f64,
+    /// Structure growth ∈ [0, 1]. Linear growth factor D(z).
+    /// 0 = no structure (early universe), 1 = fully grown (today).
+    /// Maps to civilizational developmental maturity.
+    pub structure_growth: f64,
+    /// Cosmic activity ∈ [0, 1]. Normalized star formation rate density.
+    /// Peaks at z ~ 2 (cosmic noon). Maps to creative/generative intensity.
+    pub cosmic_activity: f64,
+    /// Chemical complexity ∈ [0, 1]. Normalized mass-metallicity relation.
+    /// 0 = primordial composition, 1 = highly enriched.
+    /// Maps to experiential depth and accumulated history.
+    pub chemical_complexity: f64,
+    /// Filamentarity ∈ [0, 1]. Cosmic web geometry parameter.
+    /// 0 = isotropic (void/blob), 1 = highly anisotropic (filament).
+    /// Maps to directedness vs diffusion of civilizational flow.
+    pub filamentarity: f64,
+    /// Web environment classification (0=Void, 1=Sheet, 2=Filament, 3=Node).
+    pub web_environment: u8,
+}
+
+/// Classify cosmic web environment from tidal tensor eigenvalues.
+///
+/// Counts eigenvalues above threshold: 0 above = void, 1 = sheet,
+/// 2 = filament, 3 = node.
+fn web_environment_from_eigenvalues(
+    lambda1: f64,
+    lambda2: f64,
+    lambda3: f64,
+    threshold: f64,
+) -> u8 {
+    let count = [lambda1, lambda2, lambda3]
+        .iter()
+        .filter(|&&l| l > threshold)
+        .count();
+    count as u8 // 0=Void, 1=Sheet, 2=Filament, 3=Node
+}
+
+/// bhava Scale 5 bridge: galactic structure → civilizational personality fields.
+///
+/// Computes the galactic field state from brahmanda f64 primitives.
+/// All inputs are dependency-free — no brahmanda types cross this boundary.
+///
+/// # Arguments
+/// * `halo_concentration` — NFW concentration parameter c = R_vir/r_s (from brahmanda `HaloProperties`).
+/// * `density_contrast` — Local density contrast δ = (ρ - ρ̄)/ρ̄ (from brahmanda `density_contrast`).
+/// * `growth_factor` — Linear growth factor D(z)/D(0) ∈ [0, 1] (from brahmanda `growth_factor`).
+/// * `sfr_density` — Star formation rate density in M_sun/yr/Mpc³ (from brahmanda `sfr_density_madau`).
+/// * `metallicity_12log_oh` — Gas-phase metallicity 12+log(O/H) (from brahmanda `mass_metallicity`).
+/// * `tidal_eigenvalues` — Three eigenvalues of the tidal tensor [λ₁, λ₂, λ₃] sorted descending
+///   (from brahmanda cosmic web analysis). Used for filamentarity and web environment.
+/// * `tidal_threshold` — Threshold for web classification (typically 0.0–0.2).
+#[instrument(level = "debug", skip_all)]
+pub fn bridge_scale_5(
+    halo_concentration: f64,
+    density_contrast: f64,
+    growth_factor: f64,
+    sfr_density: f64,
+    metallicity_12log_oh: f64,
+    tidal_eigenvalues: &[f64; 3],
+    tidal_threshold: f64,
+) -> Result<GalacticField, MimamsaError> {
+    require_all_finite(
+        &[
+            halo_concentration,
+            density_contrast,
+            growth_factor,
+            sfr_density,
+            metallicity_12log_oh,
+            tidal_eigenvalues[0],
+            tidal_eigenvalues[1],
+            tidal_eigenvalues[2],
+            tidal_threshold,
+        ],
+        "bridge_scale_5",
+    )?;
+
+    // Concentration: normalize c ∈ [3, 20] → [0, 1]
+    let concentration = ((halo_concentration - 3.0) / 17.0).clamp(0.0, 1.0);
+
+    // Density pressure: δ ∈ [-1, +10] → [0, 1] via shifted sigmoid
+    // δ = -1 → 0.0, δ = 0 → 0.5, δ = 10 → ~1.0
+    let density_pressure = (1.0 / (1.0 + (-density_contrast).exp())).clamp(0.0, 1.0);
+
+    // Structure growth: already ∈ [0, 1], just clamp
+    let structure_growth = growth_factor.clamp(0.0, 1.0);
+
+    // Cosmic activity: SFR density peaks at ~0.1 M_sun/yr/Mpc³ (cosmic noon z~2)
+    // Normalize: 0.0 → 0.0, 0.1 → 1.0
+    let cosmic_activity = (sfr_density / 0.1).clamp(0.0, 1.0);
+
+    // Chemical complexity: 12+log(O/H) ∈ [7.5, 9.3] → [0, 1]
+    let chemical_complexity = ((metallicity_12log_oh - 7.5) / 1.8).clamp(0.0, 1.0);
+
+    // Filamentarity from eigenvalues: F = (λ₂ - λ₃) / (λ₁ - λ₃)
+    let [l1, l2, l3] = *tidal_eigenvalues;
+    let eigen_range = l1 - l3;
+    let filamentarity = if eigen_range.abs() > 1e-15 {
+        ((l2 - l3) / eigen_range).clamp(0.0, 1.0)
+    } else {
+        0.5 // isotropic → neutral
+    };
+
+    let web_environment = web_environment_from_eigenvalues(l1, l2, l3, tidal_threshold);
+
+    Ok(GalacticField {
+        concentration,
+        density_pressure,
+        structure_growth,
+        cosmic_activity,
+        chemical_complexity,
+        filamentarity,
+        web_environment,
+    })
 }
 
 // ── Scale 6/7: Cosmic ───────────────────────────────────────────────────
@@ -782,9 +905,70 @@ mod tests {
         assert!(old.evolutionary_urgency > young.evolutionary_urgency);
     }
 
+    fn milky_way_scale_5() -> GalacticField {
+        // Milky Way-like: c~10, δ~0 (mean density), D=1 (today), SFR~0.01, 12+log(O/H)~8.7
+        // Filament environment: λ₁=1.0, λ₂=0.3, λ₃=-0.5
+        bridge_scale_5(10.0, 0.0, 1.0, 0.01, 8.7, &[1.0, 0.3, -0.5], 0.0).unwrap()
+    }
+
     #[test]
-    fn test_bridge_scale_5_stub() {
-        assert!((bridge_scale_5().unwrap() - 0.5).abs() < 1e-10);
+    fn test_bridge_scale_5_milky_way() {
+        let field = milky_way_scale_5();
+        // Concentration: (10-3)/17 ≈ 0.41
+        assert!(field.concentration > 0.3 && field.concentration < 0.5);
+        // Density pressure: sigmoid(0) = 0.5
+        assert!((field.density_pressure - 0.5).abs() < 0.01);
+        // Structure growth: 1.0 (today)
+        assert!((field.structure_growth - 1.0).abs() < 1e-10);
+        // Chemical complexity: (8.7-7.5)/1.8 ≈ 0.67
+        assert!(field.chemical_complexity > 0.6 && field.chemical_complexity < 0.7);
+        // Web environment: 2 eigenvalues > 0 → filament (2)
+        assert_eq!(field.web_environment, 2);
+    }
+
+    #[test]
+    fn test_bridge_scale_5_void() {
+        // Deep void: low c, δ=-0.8, early universe, low SFR, low metallicity
+        let field = bridge_scale_5(5.0, -0.8, 0.3, 0.001, 7.8, &[-0.1, -0.3, -0.5], 0.0).unwrap();
+        assert!(field.concentration < 0.2);
+        assert!(field.density_pressure < 0.35);
+        assert!(field.structure_growth < 0.35);
+        assert_eq!(field.web_environment, 0); // void: 0 eigenvalues above threshold
+    }
+
+    #[test]
+    fn test_bridge_scale_5_cluster_node() {
+        // Galaxy cluster: high c, high δ, node environment
+        let field = bridge_scale_5(15.0, 5.0, 1.0, 0.05, 9.0, &[2.0, 1.5, 0.5], 0.0).unwrap();
+        assert!(field.concentration > 0.6);
+        assert!(field.density_pressure > 0.9);
+        assert_eq!(field.web_environment, 3); // node: all 3 above threshold
+    }
+
+    #[test]
+    fn test_bridge_scale_5_cosmic_noon() {
+        // z~2 cosmic noon: peak SFR
+        let field = bridge_scale_5(8.0, 1.0, 0.5, 0.1, 8.5, &[0.5, 0.1, -0.2], 0.0).unwrap();
+        assert!((field.cosmic_activity - 1.0).abs() < 0.01); // SFR=0.1 → peak
+    }
+
+    #[test]
+    fn test_bridge_scale_5_bounds() {
+        let field = milky_way_scale_5();
+        assert!((0.0..=1.0).contains(&field.concentration));
+        assert!((0.0..=1.0).contains(&field.density_pressure));
+        assert!((0.0..=1.0).contains(&field.structure_growth));
+        assert!((0.0..=1.0).contains(&field.cosmic_activity));
+        assert!((0.0..=1.0).contains(&field.chemical_complexity));
+        assert!((0.0..=1.0).contains(&field.filamentarity));
+        assert!(field.web_environment <= 3);
+    }
+
+    #[test]
+    fn test_bridge_scale_5_serde() {
+        let field = milky_way_scale_5();
+        let json = serde_json::to_string(&field).unwrap();
+        let _back: GalacticField = serde_json::from_str(&json).unwrap();
     }
 
     #[test]

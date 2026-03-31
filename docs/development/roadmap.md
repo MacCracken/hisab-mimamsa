@@ -6,9 +6,9 @@
 
 ### Post-v1.0 — Scale Integration
 
-- [ ] Scale 3 enrichment: nakshatras, dasas, yogas from jyotish (once jyotish v1)
-- [ ] Scale 4 enrichment: spectral line profiles, HR region transitions, binary star interactions (once tara v2)
-- [ ] Scale 5 implementation: brahmanda galactic data → civilizational fields (once brahmanda hardens)
+- [ ] Scale 3 enrichment: nakshatras, dasas, yogas from jyotish
+- [ ] Scale 4 enrichment: spectral line profiles, HR region transitions, binary star interactions
+- [ ] Scale 5 implementation: brahmanda galactic data → civilizational fields
 - [ ] Cyclic cosmology extension for Scale 7 (cosmic breath oscillation phase)
 
 ### Post-v1.0 — Physics Extensions
@@ -24,8 +24,8 @@
 
 | Scale | Upstream Crate | Status |
 |-------|---------------|--------|
-| 3 | jyotish (planetary astronomy) | v0.1.0, close to v1 |
+| 3 | jyotish (planetary astronomy) | v1.0.0, bridge complete |
 | 4 | tara (stellar astrophysics) | v1.0.0, bridge complete |
-| 5 | brahmanda (large-scale structure) | v0.1.0, scaffolded |
+| 5 | brahmanda (large-scale structure) | v1.0.0, bridge complete |
 | 6 | (cosmology — internal) | Complete |
 | 7 | (cosmology — internal) | Complete |
