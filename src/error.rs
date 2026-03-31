@@ -37,4 +37,39 @@ pub enum MimamsaError {
     /// Generic computation error.
     #[error("computation error: {0}")]
     Computation(String),
+
+    /// Non-finite input (NaN or ±Infinity).
+    #[error("non-finite input in {context}: {value}")]
+    NonFinite { context: &'static str, value: f64 },
+}
+
+/// Validate that a single f64 input is finite. Returns `NonFinite` error if not.
+#[inline]
+pub fn require_finite(value: f64, context: &'static str) -> Result<(), MimamsaError> {
+    if value.is_finite() {
+        Ok(())
+    } else {
+        Err(MimamsaError::NonFinite { context, value })
+    }
+}
+
+/// Validate that all f64 inputs are finite.
+#[inline]
+pub fn require_all_finite(values: &[f64], context: &'static str) -> Result<(), MimamsaError> {
+    for &v in values {
+        require_finite(v, context)?;
+    }
+    Ok(())
+}
+
+/// Validate that a computed result is finite (catches overflow, 0/0, etc.).
+#[inline]
+pub fn ensure_finite(value: f64, context: &'static str) -> Result<f64, MimamsaError> {
+    if value.is_finite() {
+        Ok(value)
+    } else {
+        Err(MimamsaError::Computation(format!(
+            "{context}: result is {value}"
+        )))
+    }
 }

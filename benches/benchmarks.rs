@@ -15,24 +15,24 @@ fn bench_lorentz_factor(c: &mut Criterion) {
 
 fn bench_schwarzschild_radius(c: &mut Criterion) {
     c.bench_function("schwarzschild_radius", |b| {
-        b.iter(|| metric::schwarzschild_radius(black_box(M_SUN)))
+        b.iter(|| metric::schwarzschild_radius(black_box(M_SUN)).unwrap())
     });
 }
 
 fn bench_hawking_temperature(c: &mut Criterion) {
     c.bench_function("hawking_temperature", |b| {
-        b.iter(|| black_hole::hawking_temperature(black_box(M_SUN)))
+        b.iter(|| black_hole::hawking_temperature(black_box(M_SUN)).unwrap())
     });
 }
 
 fn bench_light_deflection(c: &mut Criterion) {
     c.bench_function("light_deflection_weak_field", |b| {
-        b.iter(|| geodesic::light_deflection_weak_field(black_box(M_SUN), black_box(6.957e8)))
+        b.iter(|| geodesic::light_deflection_weak_field(black_box(M_SUN), black_box(6.957e8)).unwrap())
     });
 }
 
 fn bench_four_vector_boost(c: &mut Criterion) {
-    let event = lorentz::FourVector::new(3.0 * lorentz::C, 2.0 * lorentz::C, 0.0, 0.0);
+    let event = lorentz::FourVector::new(3.0 * lorentz::C, 2.0 * lorentz::C, 0.0, 0.0).unwrap();
     c.bench_function("four_vector_boost_x", |b| {
         b.iter(|| black_box(event).boost_x(black_box(0.5 * lorentz::C)))
     });

@@ -63,7 +63,7 @@
 //! ```
 //! use hisab_mimamsa::relativity::metric;
 //!
-//! let rs = metric::schwarzschild_radius(1.989e30);
+//! let rs = metric::schwarzschild_radius(1.989e30).unwrap();
 //! assert!((rs - 2953.0).abs() < 5.0);
 //! ```
 //!
@@ -72,7 +72,7 @@
 //! ```
 //! use hisab_mimamsa::relativity::black_hole;
 //!
-//! let t = black_hole::hawking_temperature(1.989e30);
+//! let t = black_hole::hawking_temperature(1.989e30).unwrap();
 //! assert!(t > 1e-9 && t < 1e-6);
 //! ```
 

@@ -3,7 +3,7 @@
 use tracing::warn;
 
 use crate::constants::{C, G};
-use crate::error::MimamsaError;
+use crate::error::{ensure_finite, require_finite, require_all_finite, MimamsaError};
 
 /// Einstein ring angular radius (radians).
 /// θ_E = √(4GM * D_ls / (c² * D_l * D_s))
@@ -14,6 +14,7 @@ pub fn einstein_ring_radius(
     d_lens: f64,
     d_source: f64,
 ) -> Result<f64, MimamsaError> {
+    require_all_finite(&[mass_kg, d_lens, d_source], "einstein_ring_radius")?;
     let d_ls = d_source - d_lens;
     if d_lens <= 0.0 || d_source <= 0.0 || d_ls <= 0.0 {
         warn!(d_lens, d_source, d_ls, "invalid lensing geometry for Einstein ring");
@@ -21,20 +22,20 @@ pub fn einstein_ring_radius(
             "invalid lensing geometry: d_lens={d_lens:.3e}, d_source={d_source:.3e}"
         )));
     }
-    Ok((4.0 * G * mass_kg * d_ls / (C * C * d_lens * d_source)).sqrt())
+    ensure_finite((4.0 * G * mass_kg * d_ls / (C * C * d_lens * d_source)).sqrt(), "einstein_ring_radius")
 }
 
 /// Point-source magnification for a point lens.
 /// μ = (u² + 2) / (u * √(u² + 4))
 /// where u = angular separation / θ_E.
-#[must_use]
 #[inline]
-pub fn point_lens_magnification(u: f64) -> f64 {
+pub fn point_lens_magnification(u: f64) -> Result<f64, MimamsaError> {
+    require_finite(u, "point_lens_magnification")?;
     if u.abs() < 1e-15 {
-        return f64::INFINITY; // perfect alignment → infinite magnification (point source)
+        return Ok(f64::INFINITY); // perfect alignment → infinite magnification (point source)
     }
     let u2 = u * u;
-    (u2 + 2.0) / (u * (u2 + 4.0).sqrt())
+    ensure_finite((u2 + 2.0) / (u * (u2 + 4.0).sqrt()), "point_lens_magnification")
 }
 
 /// Critical surface density for lensing (kg/m²).
@@ -44,6 +45,7 @@ pub fn critical_surface_density(
     d_lens: f64,
     d_source: f64,
 ) -> Result<f64, MimamsaError> {
+    require_all_finite(&[d_lens, d_source], "critical_surface_density")?;
     let d_ls = d_source - d_lens;
     if d_lens <= 0.0 || d_source <= 0.0 || d_ls <= 0.0 {
         warn!(d_lens, d_source, d_ls, "invalid lensing geometry for critical density");
@@ -51,7 +53,7 @@ pub fn critical_surface_density(
             "invalid lensing geometry: d_lens={d_lens:.3e}, d_source={d_source:.3e}"
         )));
     }
-    Ok(C * C * d_source / (4.0 * std::f64::consts::PI * G * d_lens * d_ls))
+    ensure_finite(C * C * d_source / (4.0 * std::f64::consts::PI * G * d_lens * d_ls), "critical_surface_density")
 }
 
 #[cfg(test)]
@@ -78,14 +80,14 @@ mod tests {
     #[test]
     fn test_magnification_far_from_lens() {
         // Far from lens (u >> 1): magnification → 1
-        let mu = point_lens_magnification(100.0);
+        let mu = point_lens_magnification(100.0).unwrap();
         assert!((mu - 1.0).abs() < 0.01);
     }
 
     #[test]
     fn test_magnification_near_einstein_ring() {
         // At u = 1 (on Einstein ring): μ = 3/√5 ≈ 1.342
-        let mu = point_lens_magnification(1.0);
+        let mu = point_lens_magnification(1.0).unwrap();
         assert!((mu - 3.0 / 5.0_f64.sqrt()).abs() < 0.001);
     }
 

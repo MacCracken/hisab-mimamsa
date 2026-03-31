@@ -2,6 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::error::{ensure_finite, require_all_finite, require_finite, MimamsaError};
+
 /// Hubble constant H₀ (km/s/Mpc → s⁻¹ for internal use).
 pub const H0_KM_S_MPC: f64 = 67.4; // Planck 2018
 pub const MPC_IN_KM: f64 = 3.085_677_581e19;
@@ -55,51 +57,57 @@ impl Default for CosmologicalParameters {
 
 /// Hubble parameter H(z) as a function of redshift z.
 /// H(z) = H₀ √(Ω_r(1+z)⁴ + Ω_m(1+z)³ + Ω_k(1+z)² + Ω_Λ)
-#[must_use]
 #[inline]
-pub fn hubble_parameter(params: &CosmologicalParameters, z: f64) -> f64 {
+pub fn hubble_parameter(params: &CosmologicalParameters, z: f64) -> Result<f64, MimamsaError> {
+    require_finite(z, "hubble_parameter")?;
     let z1 = 1.0 + z;
     let z2 = z1 * z1;
     let z3 = z2 * z1;
     let z4 = z3 * z1;
 
     let h0_si = params.h0 / MPC_IN_KM;
-    h0_si
+    ensure_finite(h0_si
         * (params.omega_r * z4 + params.omega_m * z3 + params.omega_k * z2 + params.omega_lambda)
-            .sqrt()
+            .sqrt(), "hubble_parameter")
 }
 
 /// Critical density: ρ_c = 3H²/(8πG).
-#[must_use]
 #[inline]
-pub fn critical_density(h: f64) -> f64 {
-    3.0 * h * h / (8.0 * std::f64::consts::PI * crate::constants::G)
+pub fn critical_density(h: f64) -> Result<f64, MimamsaError> {
+    require_finite(h, "critical_density")?;
+    ensure_finite(3.0 * h * h / (8.0 * std::f64::consts::PI * crate::constants::G), "critical_density")
 }
 
 /// Deceleration parameter q(z) = -1 - Ḣ/H².
 /// At z=0: q₀ = Ω_m/2 + Ω_r - Ω_Λ.
-#[must_use]
 #[inline]
-pub fn deceleration_parameter_now(params: &CosmologicalParameters) -> f64 {
-    params.omega_m / 2.0 + params.omega_r - params.omega_lambda
+pub fn deceleration_parameter_now(params: &CosmologicalParameters) -> Result<f64, MimamsaError> {
+    require_all_finite(
+        &[params.omega_m, params.omega_r, params.omega_lambda],
+        "deceleration_parameter_now",
+    )?;
+    ensure_finite(params.omega_m / 2.0 + params.omega_r - params.omega_lambda, "deceleration_parameter_now")
 }
 
 /// Age of universe via numerical integration of 1/((1+z)H(z)).
 /// Uses simple trapezoidal rule with n steps from z=0 to z_max.
-#[must_use]
-pub fn age_of_universe(params: &CosmologicalParameters, z_max: f64, n: usize) -> f64 {
+pub fn age_of_universe(params: &CosmologicalParameters, z_max: f64, n: usize) -> Result<f64, MimamsaError> {
+    require_finite(z_max, "age_of_universe")?;
+    if n == 0 {
+        return Ok(0.0);
+    }
     let dz = z_max / n as f64;
     let mut integral = 0.0;
 
     for i in 0..n {
         let z0 = i as f64 * dz;
         let z1 = (i + 1) as f64 * dz;
-        let f0 = 1.0 / ((1.0 + z0) * hubble_parameter(params, z0));
-        let f1 = 1.0 / ((1.0 + z1) * hubble_parameter(params, z1));
+        let f0 = 1.0 / ((1.0 + z0) * hubble_parameter(params, z0)?);
+        let f1 = 1.0 / ((1.0 + z1) * hubble_parameter(params, z1)?);
         integral += 0.5 * (f0 + f1) * dz;
     }
 
-    integral
+    ensure_finite(integral, "age_of_universe")
 }
 
 #[cfg(test)]
@@ -114,7 +122,7 @@ mod tests {
     #[test]
     fn test_hubble_at_z0() {
         let params = CosmologicalParameters::planck2018();
-        let h = hubble_parameter(&params, 0.0);
+        let h = hubble_parameter(&params, 0.0).unwrap();
         let h0_si = params.h0 / MPC_IN_KM;
         // At z=0, H(0) should ≈ H₀ (within numerical precision of density sum)
         assert!((h - h0_si).abs() / h0_si < 0.01);
@@ -123,9 +131,9 @@ mod tests {
     #[test]
     fn test_hubble_increases_with_z() {
         let params = CosmologicalParameters::planck2018();
-        let h0 = hubble_parameter(&params, 0.0);
-        let h1 = hubble_parameter(&params, 1.0);
-        let h10 = hubble_parameter(&params, 10.0);
+        let h0 = hubble_parameter(&params, 0.0).unwrap();
+        let h1 = hubble_parameter(&params, 1.0).unwrap();
+        let h10 = hubble_parameter(&params, 10.0).unwrap();
         assert!(h1 > h0);
         assert!(h10 > h1);
     }
@@ -133,7 +141,7 @@ mod tests {
     #[test]
     fn test_deceleration_parameter() {
         let params = CosmologicalParameters::planck2018();
-        let q = deceleration_parameter_now(&params);
+        let q = deceleration_parameter_now(&params).unwrap();
         // q₀ < 0 means accelerating expansion (dark energy dominated)
         assert!(q < 0.0);
     }
@@ -141,7 +149,7 @@ mod tests {
     #[test]
     fn test_age_of_universe() {
         let params = CosmologicalParameters::planck2018();
-        let age_s = age_of_universe(&params, 1100.0, 10000);
+        let age_s = age_of_universe(&params, 1100.0, 10000).unwrap();
         let age_gyr = age_s / (365.25 * 24.0 * 3600.0 * 1e9);
         // Should be ~13.8 Gyr
         assert!(age_gyr > 13.0 && age_gyr < 14.5);
@@ -150,7 +158,7 @@ mod tests {
     #[test]
     fn test_critical_density_today() {
         let h0_si = H0_KM_S_MPC / MPC_IN_KM;
-        let rho_c = critical_density(h0_si);
+        let rho_c = critical_density(h0_si).unwrap();
         // ρ_c ≈ 9.47e-27 kg/m³
         assert!(rho_c > 8e-27 && rho_c < 1.1e-26);
     }
