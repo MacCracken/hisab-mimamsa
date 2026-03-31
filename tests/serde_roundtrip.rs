@@ -94,3 +94,60 @@ fn roundtrip_cosmological_parameters() {
     let params = CosmologicalParameters::planck2018();
     roundtrip_json_no_eq(&params, "CosmologicalParameters");
 }
+
+// ── QFT types ───────────────────────────────────────────────────────────
+
+#[cfg(feature = "qft")]
+mod qft_serde {
+    use super::*;
+    use hisab_mimamsa::quantum_field::{
+        FourMomentum, FieldType, GaugeChoice,
+        coupling::CouplingAnalysis,
+        feynman::{ParticleType, Vertex},
+    };
+
+    #[test]
+    fn roundtrip_four_momentum() {
+        let fm = FourMomentum::new(10.0, 3.0, 4.0, 5.0).unwrap();
+        roundtrip_json(&fm, "FourMomentum");
+    }
+
+    #[test]
+    fn roundtrip_field_type() {
+        for ft in [FieldType::Scalar, FieldType::Fermion, FieldType::GaugeBoson] {
+            roundtrip_json(&ft, &format!("FieldType::{ft:?}"));
+        }
+    }
+
+    #[test]
+    fn roundtrip_gauge_choice() {
+        roundtrip_json(&GaugeChoice::Feynman, "GaugeChoice::Feynman");
+    }
+
+    #[test]
+    fn roundtrip_particle_type() {
+        for pt in [ParticleType::Scalar, ParticleType::Fermion, ParticleType::Photon] {
+            roundtrip_json(&pt, &format!("ParticleType::{pt:?}"));
+        }
+    }
+
+    #[test]
+    fn roundtrip_coupling_analysis() {
+        let ca = CouplingAnalysis {
+            alpha_at_scale: 1.0 / 137.0,
+            beta_value: 0.001,
+            scale_gev: 91.1876,
+            is_asymptotically_free: false,
+        };
+        roundtrip_json_no_eq(&ca, "CouplingAnalysis");
+    }
+
+    #[test]
+    fn roundtrip_vertex() {
+        let v = Vertex {
+            coupling: 0.3,
+            particles: vec![ParticleType::Fermion, ParticleType::Fermion, ParticleType::Photon],
+        };
+        roundtrip_json_no_eq(&v, "Vertex");
+    }
+}

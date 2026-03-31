@@ -235,3 +235,122 @@ mod cosmology_invariants {
         }
     }
 }
+
+// ── QFT invariants ─────────────────────────────────────────────────────
+
+#[cfg(feature = "qft")]
+mod qft_invariants {
+    use hisab_mimamsa::constants::{ALPHA, ALPHA_S_MZ, M_Z_GEV};
+    use hisab_mimamsa::quantum_field::{propagator, vacuum, coupling, feynman, FourMomentum};
+
+    #[test]
+    fn propagator_symmetry_p_equals_neg_p() {
+        // Δ(p) = Δ(-p) for scalar field
+        let momenta = [
+            (5.0, 3.0, 1.0, 2.0),
+            (10.0, 0.0, 0.0, 0.0),
+            (100.0, 50.0, 30.0, 10.0),
+        ];
+        for (e, px, py, pz) in momenta {
+            let p = FourMomentum::new(e, px, py, pz).unwrap();
+            let neg_p = FourMomentum::new(-e, -px, -py, -pz).unwrap();
+            let d1 = propagator::scalar_propagator(&p, 1.0, propagator::DEFAULT_EPSILON).unwrap();
+            let d2 = propagator::scalar_propagator(&neg_p, 1.0, propagator::DEFAULT_EPSILON).unwrap();
+            assert!((d1.re - d2.re).abs() < 1e-12,
+                "propagator symmetry failed (re) for p=({e},{px},{py},{pz})");
+            assert!((d1.im - d2.im).abs() < 1e-12,
+                "propagator symmetry failed (im) for p=({e},{px},{py},{pz})");
+        }
+    }
+
+    #[test]
+    fn qed_alpha_increases_with_energy() {
+        let scales = [200.0, 500.0, 1000.0];
+        let mut prev = ALPHA;
+        for &mu in &scales {
+            let alpha_mu = coupling::running_coupling_qed_analytic(ALPHA, M_Z_GEV, mu).unwrap();
+            assert!(
+                alpha_mu > prev,
+                "QED α should increase: α({mu}) = {alpha_mu} <= α_prev = {prev}"
+            );
+            prev = alpha_mu;
+        }
+    }
+
+    #[test]
+    fn qcd_alpha_s_decreases_with_energy() {
+        let scales = [200.0, 500.0, 1000.0];
+        let mut prev = ALPHA_S_MZ;
+        for &mu in &scales {
+            let alpha_s_mu =
+                coupling::running_coupling_qcd_analytic(ALPHA_S_MZ, M_Z_GEV, mu, 6).unwrap();
+            assert!(
+                alpha_s_mu < prev,
+                "QCD α_s should decrease: α_s({mu}) = {alpha_s_mu} >= α_s_prev = {prev}"
+            );
+            prev = alpha_s_mu;
+        }
+    }
+
+    #[test]
+    fn casimir_force_always_attractive() {
+        for &d in &[1e-9, 1e-7, 1e-6, 1e-5, 1e-3, 1.0] {
+            let f = vacuum::casimir_force_per_area(d).unwrap();
+            assert!(f < 0.0, "Casimir force should be negative (attractive) at d={d}, got {f}");
+        }
+    }
+
+    #[test]
+    fn casimir_force_scales_as_inverse_d4() {
+        // F(d) / F(2d) = (2d)⁴ / d⁴ = 16
+        for &d in &[1e-7, 1e-6, 1e-5] {
+            let f1 = vacuum::casimir_force_per_area(d).unwrap();
+            let f2 = vacuum::casimir_force_per_area(2.0 * d).unwrap();
+            let ratio = f1 / f2;
+            assert!(
+                (ratio - 16.0).abs() < 0.01,
+                "Casimir F(d)/F(2d) = {ratio}, expected 16, at d={d}"
+            );
+        }
+    }
+
+    #[test]
+    fn mandelstam_identity_s_t_u() {
+        // s + t + u = Σ mᵢ² for several 2→2 kinematics
+        let configs: Vec<(f64, f64, f64, f64, [f64; 4])> = vec![
+            // massless e+e- → μ+μ- at √s = 10
+            (5.0, 5.0, 5.0, 5.0, [0.0, 0.0, 0.0, 0.0]),
+            // massless at √s = 20
+            (10.0, 10.0, 10.0, 10.0, [0.0, 0.0, 0.0, 0.0]),
+        ];
+        for (e, _, _, _, masses) in &configs {
+            let e = *e;
+            let p1 = FourMomentum::new(e, 0.0, 0.0, e).unwrap();
+            let p2 = FourMomentum::new(e, 0.0, 0.0, -e).unwrap();
+            let p3 = FourMomentum::new(e, e, 0.0, 0.0).unwrap();
+            let p4 = FourMomentum::new(e, -e, 0.0, 0.0).unwrap();
+
+            let s = feynman::mandelstam_s(&p1, &p2).unwrap();
+            let t = feynman::mandelstam_t(&p1, &p3).unwrap();
+            let u = feynman::mandelstam_u(&p1, &p4).unwrap();
+
+            let ok = feynman::verify_mandelstam_identity(s, t, u, masses).unwrap();
+            assert!(ok, "Mandelstam identity failed: s+t+u={}, Σm²={}",
+                s + t + u, masses.iter().map(|m| m * m).sum::<f64>());
+        }
+    }
+
+    #[test]
+    fn cross_section_positive_for_positive_inputs() {
+        for &m2 in &[0.01, 0.1, 1.0, 10.0, 100.0] {
+            for &s in &[10.0, 100.0, 1000.0] {
+                let sigma = feynman::total_cross_section_2to2_massless(m2, s).unwrap();
+                assert!(sigma > 0.0,
+                    "cross-section should be positive for |M|²={m2}, s={s}, got {sigma}");
+                let dsigma = feynman::differential_cross_section_2to2(m2, s).unwrap();
+                assert!(dsigma > 0.0,
+                    "diff cross-section should be positive for |M|²={m2}, s={s}, got {dsigma}");
+            }
+        }
+    }
+}

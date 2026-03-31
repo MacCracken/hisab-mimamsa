@@ -450,3 +450,172 @@ mod cosmology_fuzz {
         }
     }
 }
+
+// ── QFT ─────────────────────────────────────────────────────────────────
+
+#[cfg(feature = "qft")]
+mod qft_fuzz {
+    use super::*;
+    use hisab_mimamsa::quantum_field::{propagator, vacuum, coupling, feynman, FourMomentum};
+
+    #[test]
+    fn fuzz_four_momentum_new() {
+        for &h in &HOSTILE {
+            let r = FourMomentum::new(h, h, h, h);
+            match r {
+                Ok(fm) => {
+                    let m2 = fm.invariant_mass_sq();
+                    assert_result_sound(m2, &format!("FourMomentum::new({h}).invariant_mass_sq"));
+                }
+                Err(_) => {}
+            }
+        }
+    }
+
+    #[test]
+    fn fuzz_scalar_propagator() {
+        let p = FourMomentum::new(5.0, 3.0, 1.0, 0.0).unwrap();
+        for &h in &HOSTILE {
+            // hostile mass
+            let r = propagator::scalar_propagator(&p, h, propagator::DEFAULT_EPSILON);
+            match r {
+                Ok(c) => assert!(c.re.is_finite() && c.im.is_finite(),
+                    "scalar_propagator(mass={h}): non-finite Ok"),
+                Err(_) => {}
+            }
+            // hostile epsilon
+            let r = propagator::scalar_propagator(&p, 1.0, h);
+            match r {
+                Ok(c) => assert!(c.re.is_finite() && c.im.is_finite(),
+                    "scalar_propagator(eps={h}): non-finite Ok"),
+                Err(_) => {}
+            }
+        }
+    }
+
+    #[test]
+    fn fuzz_gauge_boson_propagator() {
+        let k = FourMomentum::new(10.0, 5.0, 0.0, 0.0).unwrap();
+        for &h in &HOSTILE {
+            let r = propagator::gauge_boson_propagator(&k, h);
+            match r {
+                Ok(c) => assert!(c.re.is_finite() && c.im.is_finite(),
+                    "gauge_boson_propagator(eps={h}): non-finite Ok"),
+                Err(_) => {}
+            }
+        }
+    }
+
+    #[test]
+    fn fuzz_zero_point_energy() {
+        for &h in &HOSTILE {
+            let r = vacuum::zero_point_energy(h);
+            assert_result_sound(r, &format!("zero_point_energy({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_casimir_force_per_area() {
+        for &h in &HOSTILE {
+            let r = vacuum::casimir_force_per_area(h);
+            assert_result_sound(r, &format!("casimir_force_per_area({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_casimir_energy_per_area() {
+        for &h in &HOSTILE {
+            let r = vacuum::casimir_energy_per_area(h);
+            assert_result_sound(r, &format!("casimir_energy_per_area({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_regularized_vacuum_energy_density() {
+        for &h in &HOSTILE {
+            let r = vacuum::regularized_vacuum_energy_density(h);
+            assert_result_sound(r, &format!("regularized_vacuum_energy_density({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_vacuum_energy_density_dimreg() {
+        for &h in &HOSTILE {
+            let r1 = vacuum::vacuum_energy_density_dimreg(h, 1.0);
+            assert_result_sound(r1, &format!("vacuum_energy_density_dimreg({h}, 1.0)"));
+            let r2 = vacuum::vacuum_energy_density_dimreg(1.0, h);
+            assert_result_sound(r2, &format!("vacuum_energy_density_dimreg(1.0, {h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_beta_qed_one_loop() {
+        for &h in &HOSTILE {
+            let r = coupling::beta_qed_one_loop(h);
+            assert_result_sound(r, &format!("beta_qed_one_loop({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_beta_qcd_one_loop() {
+        for &h in &HOSTILE {
+            let r = coupling::beta_qcd_one_loop(h, 6);
+            assert_result_sound(r, &format!("beta_qcd_one_loop({h}, 6)"));
+        }
+    }
+
+    #[test]
+    fn fuzz_running_coupling_qed_analytic() {
+        for &h in &HOSTILE {
+            let r1 = coupling::running_coupling_qed_analytic(h, 91.0, 200.0);
+            assert_result_sound(r1, &format!("running_coupling_qed_analytic({h}, 91, 200)"));
+            let r2 = coupling::running_coupling_qed_analytic(1.0 / 137.0, h, 200.0);
+            assert_result_sound(r2, &format!("running_coupling_qed_analytic(α, {h}, 200)"));
+            let r3 = coupling::running_coupling_qed_analytic(1.0 / 137.0, 91.0, h);
+            assert_result_sound(r3, &format!("running_coupling_qed_analytic(α, 91, {h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_running_coupling_qcd_analytic() {
+        for &h in &HOSTILE {
+            let r1 = coupling::running_coupling_qcd_analytic(h, 91.0, 200.0, 6);
+            assert_result_sound(r1, &format!("running_coupling_qcd_analytic({h}, 91, 200, 6)"));
+            let r2 = coupling::running_coupling_qcd_analytic(0.1179, h, 200.0, 6);
+            assert_result_sound(r2, &format!("running_coupling_qcd_analytic(αs, {h}, 200, 6)"));
+            let r3 = coupling::running_coupling_qcd_analytic(0.1179, 91.0, h, 6);
+            assert_result_sound(r3, &format!("running_coupling_qcd_analytic(αs, 91, {h}, 6)"));
+        }
+    }
+
+    #[test]
+    fn fuzz_mandelstam_s() {
+        for &h in &HOSTILE {
+            let p_ok = FourMomentum::new(5.0, 3.0, 0.0, 0.0).unwrap();
+            if let Ok(p_hostile) = FourMomentum::new(h, h, h, h) {
+                let r = feynman::mandelstam_s(&p_hostile, &p_ok);
+                assert_result_sound(r, &format!("mandelstam_s(hostile({h}), ok)"));
+            }
+        }
+    }
+
+    #[test]
+    fn fuzz_differential_cross_section_2to2() {
+        for &h in &HOSTILE {
+            let r1 = feynman::differential_cross_section_2to2(h, 100.0);
+            assert_result_sound(r1, &format!("differential_cross_section_2to2({h}, 100)"));
+            let r2 = feynman::differential_cross_section_2to2(1.0, h);
+            assert_result_sound(r2, &format!("differential_cross_section_2to2(1, {h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_total_cross_section_2to2_massless() {
+        for &h in &HOSTILE {
+            let r1 = feynman::total_cross_section_2to2_massless(h, 100.0);
+            assert_result_sound(r1, &format!("total_cross_section_2to2_massless({h}, 100)"));
+            let r2 = feynman::total_cross_section_2to2_massless(1.0, h);
+            assert_result_sound(r2, &format!("total_cross_section_2to2_massless(1, {h})"));
+        }
+    }
+}

@@ -73,3 +73,35 @@ pub fn ensure_finite(value: f64, context: &'static str) -> Result<f64, MimamsaEr
         )))
     }
 }
+
+/// Validate that a Complex input has finite real and imaginary parts.
+#[inline]
+pub fn require_finite_complex(
+    z: &hisab::Complex,
+    context: &'static str,
+) -> Result<(), MimamsaError> {
+    if z.re.is_finite() && z.im.is_finite() {
+        Ok(())
+    } else {
+        let bad = if !z.re.is_finite() { z.re } else { z.im };
+        Err(MimamsaError::NonFinite {
+            context,
+            value: bad,
+        })
+    }
+}
+
+/// Validate that a computed Complex result has finite components.
+#[inline]
+pub fn ensure_finite_complex(
+    z: hisab::Complex,
+    context: &'static str,
+) -> Result<hisab::Complex, MimamsaError> {
+    if z.re.is_finite() && z.im.is_finite() {
+        Ok(z)
+    } else {
+        Err(MimamsaError::Computation(format!(
+            "{context}: result has non-finite component ({z})"
+        )))
+    }
+}
