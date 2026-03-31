@@ -1,0 +1,14 @@
+timestamp,commit,branch,benchmark,time_ns,unit
+2026-03-31T10:50:20Z,c9a99e4,main,lorentz_factor,7.5428,ns
+2026-03-31T10:50:20Z,c9a99e4,main,schwarzschild_radius,1.5802,ns
+2026-03-31T10:50:20Z,c9a99e4,main,hawking_temperature,2.1477,ns
+2026-03-31T10:50:20Z,c9a99e4,main,light_deflection_weak_field,2.0111,ns
+2026-03-31T10:50:20Z,c9a99e4,main,four_vector_boost_x,12.069,ns
+2026-03-31T10:50:20Z,c9a99e4,main,scalar_propagator,3.5474,ns
+2026-03-31T10:50:20Z,c9a99e4,main,casimir_force_per_area,1.8037,ns
+2026-03-31T10:50:20Z,c9a99e4,main,running_coupling_qed_analytic,8.9389,ns
+2026-03-31T10:50:20Z,c9a99e4,main,running_coupling_qcd_analytic,10.780,ns
+2026-03-31T10:50:20Z,c9a99e4,main,holographic_bound,1.8767,ns
+2026-03-31T10:50:20Z,c9a99e4,main,entropy_ratio,5.1852,ns
+2026-03-31T10:50:20Z,c9a99e4,main,manifestation_intensity,8.7184,ns
+2026-03-31T10:50:20Z,c9a99e4,main,BridgeOutput::at_redshift,23.285,ns
