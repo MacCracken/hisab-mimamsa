@@ -32,6 +32,10 @@ const SIGN_MODALITY: [usize; 12] = [0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2];
 const PLANET_WEIGHTS: [f64; 10] = [2.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
 
 /// Aspect angle tolerance for classification (degrees).
+///
+/// 8° is the standard classical astrology orb tolerance for major aspects.
+/// Wide enough to catch most meaningful aspects, narrow enough to avoid
+/// false positives from unrelated angular separations.
 const ASPECT_ORB: f64 = 8.0;
 
 /// Output bundle for a bhava bridge computation at a given redshift.
@@ -51,6 +55,9 @@ impl BridgeOutput {
     /// Compute the full bridge output at redshift z.
     ///
     /// Convergence rate is estimated by finite difference with Δz = 0.01.
+    /// This step size is adequate for the smooth dark-energy-dominated era (z < ~0.3)
+    /// but may be too coarse near phase transitions (radiation→matter at z ~ 3400).
+    /// Future versions may use adaptive step sizing for high-z precision.
     #[instrument(level = "debug", skip(params), ret)]
     pub fn at_redshift(params: &CosmologicalParameters, z: f64) -> Result<Self, MimamsaError> {
         let intensity = bridge_scale_6(params, z)?;
@@ -148,6 +155,7 @@ fn sign_index(longitude_deg: f64) -> usize {
 /// are weighted 2×. Returns normalized [Fire, Earth, Air, Water].
 ///
 /// Planet order: Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto.
+#[must_use = "element balance distribution should be used"]
 #[instrument(level = "trace", skip(longitudes_deg))]
 pub fn element_balance(longitudes_deg: &[f64; 10]) -> Result<[f64; 4], MimamsaError> {
     require_all_finite(longitudes_deg, "element_balance")?;
@@ -172,6 +180,7 @@ pub fn element_balance(longitudes_deg: &[f64; 10]) -> Result<[f64; 4], MimamsaEr
 /// Compute modality balance from 10 planetary ecliptic longitudes.
 ///
 /// Returns normalized [Cardinal, Fixed, Mutable].
+#[must_use = "modality balance distribution should be used"]
 #[instrument(level = "trace", skip(longitudes_deg))]
 pub fn modality_balance(longitudes_deg: &[f64; 10]) -> Result<[f64; 3], MimamsaError> {
     require_all_finite(longitudes_deg, "modality_balance")?;
@@ -201,6 +210,7 @@ pub fn modality_balance(longitudes_deg: &[f64; 10]) -> Result<[f64; 3], MimamsaE
 ///
 /// Input: slice of (aspect_angle_degrees, strength_0_to_1) pairs.
 /// Returns (tension, harmony), each ∈ [0, 1].
+#[must_use = "aspect tension/harmony values should be used"]
 #[instrument(level = "trace", skip(aspects))]
 pub fn aspect_tension_harmony(aspects: &[(f64, f64)]) -> Result<(f64, f64), MimamsaError> {
     if aspects.is_empty() {
@@ -240,6 +250,7 @@ pub fn aspect_tension_harmony(aspects: &[(f64, f64)]) -> Result<(f64, f64), Mima
 /// Returns normalized 12-element array (sum = 1.0).
 ///
 /// Handles the 360° wraparound correctly.
+#[must_use = "house emphasis distribution should be used"]
 #[instrument(level = "trace", skip(planet_longitudes, house_cusps))]
 pub fn house_emphasis(
     planet_longitudes: &[f64; 10],
@@ -292,6 +303,7 @@ pub fn house_emphasis(
 ///
 /// Negative daily motion indicates retrograde. Sun and Moon never retrograde
 /// but the function handles any input.
+#[must_use = "retrograde fraction should be used"]
 pub fn retrograde_fraction(daily_motions: &[f64]) -> Result<f64, MimamsaError> {
     if daily_motions.is_empty() {
         return Ok(0.0);
@@ -362,6 +374,7 @@ pub fn bridge_scale_3(
 /// bhava Scale 4 bridge stub: stellar influence → soul motivation layers.
 ///
 /// Placeholder returning 0.5 (neutral) until the tara crate is available.
+#[deprecated(note = "stub returning 0.5 — will be replaced when tara v1 is available")]
 #[inline]
 pub fn bridge_scale_4() -> Result<f64, MimamsaError> {
     Ok(0.5)
@@ -370,6 +383,7 @@ pub fn bridge_scale_4() -> Result<f64, MimamsaError> {
 /// bhava Scale 5 bridge stub: galactic structure → civilizational personality fields.
 ///
 /// Placeholder returning 0.5 (neutral) until large-scale structure data is available.
+#[deprecated(note = "stub returning 0.5 — will be replaced when brahmanda hardens")]
 #[inline]
 pub fn bridge_scale_5() -> Result<f64, MimamsaError> {
     Ok(0.5)
@@ -598,11 +612,13 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_bridge_scale_4_stub() {
         assert!((bridge_scale_4().unwrap() - 0.5).abs() < 1e-10);
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_bridge_scale_5_stub() {
         assert!((bridge_scale_5().unwrap() - 0.5).abs() < 1e-10);
     }

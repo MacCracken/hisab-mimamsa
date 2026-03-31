@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0] — 2026-03-31
+## [1.0.0] — 2026-03-31
 
 ### Added
 
@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Four-vectors with Lorentz boosts, interval classification (timelike/lightlike/spacelike)
 - Schwarzschild metric: event horizon, ISCO, photon sphere, orbital velocity
 - Gravitational time dilation and redshift
-- Geodesics: effective potential, weak-field light deflection, Shapiro delay
+- Geodesics: effective potential (timelike/null/spacelike), weak-field light deflection, Shapiro delay
 - Black hole thermodynamics: Hawking temperature, Bekenstein-Hawking entropy, evaporation time, surface gravity, `BlackHoleProperties` bundle
 - Gravitational lensing: Einstein ring radius, point-source magnification, critical surface density
 
@@ -53,13 +53,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Input validation: `require_finite`, `require_all_finite` on all public function inputs
 - Output validation: `ensure_finite`, `ensure_finite_complex` on all computed results
 - Structured tracing: `warn!` on domain boundary violations, `error!` on computational failures (RK4, FFT), `#[instrument]` spans on ~50 public functions (`trace`/`debug` levels with argument capture and `ret` on key aggregators)
+- Optional logging feature with `HISAB_MIMAMSA_LOG` env var (tracing-subscriber with env-filter)
 
 #### Testing & Quality
-- 257 tests across 6 test suites: unit (133), adversarial fuzzing (65), integration (4), physical invariants (29), serde roundtrip (17), doc tests (9)
+- 279 tests across 6 test suites: unit (155), adversarial fuzzing (65), integration (4), physical invariants (29), serde roundtrip (17), doc tests (9)
+- 92% line coverage with CI enforcement at 85% threshold
 - Adversarial fuzzing with [NaN, ±Inf, ±0, f64::MIN, f64::MAX, f64::EPSILON, -1, 1e-300] on every public function
 - Physical invariant tests: Lorentz boost interval preservation, Mandelstam identity, thermodynamic scaling laws, Etherington reciprocity, entropy monotonicity
 - Serde roundtrip tests for all public types
-- 14 criterion benchmarks with CSV history tracking
+- 14 criterion 0.8 benchmarks with CSV history tracking
 - 4 runnable examples (relativity, cosmology, qft, unified)
 - Zero `unsafe`, zero `println!`, zero clippy warnings
 
@@ -68,6 +70,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Development roadmap with versioned milestones
 - 5 Architecture Decision Records (input validation, natural units, dependency-free bridges, manifestation intensity model, feature gates)
 - CHANGELOG, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT
-- CI/CD workflows (ci.yml, release.yml)
+- CI/CD workflows (ci.yml, release.yml) with coverage gate
 - Makefile with standard targets
 - deny.toml for license and advisory compliance

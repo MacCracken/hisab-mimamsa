@@ -25,7 +25,7 @@
 | Scale | Upstream Crate | Status |
 |-------|---------------|--------|
 | 3 | jyotish (planetary astronomy) | v0.1.0, close to v1 |
-| 4 | tara (stellar astrophysics) | v0.2.0 |
+| 4 | tara (stellar astrophysics) | v1.0.0 |
 | 5 | brahmanda (large-scale structure) | v0.1.0, scaffolded |
 | 6 | (cosmology — internal) | Complete |
 | 7 | (cosmology — internal) | Complete |

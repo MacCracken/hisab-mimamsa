@@ -62,4 +62,8 @@
 
 pub mod fixed_point;
 pub mod holographic;
+// scale_bridge includes RG coupling wrappers (scale_coupling_qed/qcd) because
+// renormalization group flow is the mechanism that connects QFT at different
+// energy scales — the same principle that lets the unified module bridge
+// micro (quantum_field) and macro (cosmology) physics for bhava's Scale 3-7.
 pub mod scale_bridge;

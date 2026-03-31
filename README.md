@@ -121,7 +121,7 @@ println!("Unity parameter: {:.4}", bridge.unity_param); // ~0.685
 
 ```toml
 [dependencies]
-hisab-mimamsa = { version = "0.1", features = ["unified"] }
+hisab-mimamsa = { version = "1.0", features = ["unified"] }
 ```
 
 ## Validated Physics
@@ -187,7 +187,7 @@ Bridge functions are dependency-free (f64 primitives only) — see [ADR-003](doc
 | quantum_field | 47 | Complete (propagators + vacuum + coupling + Feynman) |
 | unified | 40 | Complete (holographic + fixed point + Scale 3-7 bridges) |
 
-257 tests, 14 benchmarks, 4 examples, 9 doc tests, clippy clean, zero `unsafe`.
+279 tests, 14 benchmarks, 4 examples, 9 doc tests, 92% coverage, clippy clean, zero `unsafe`.
 
 ## Documentation
 
