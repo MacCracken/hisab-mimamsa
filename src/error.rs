@@ -74,6 +74,39 @@ pub fn ensure_finite(value: f64, context: &'static str) -> Result<f64, MimamsaEr
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ensure_finite_nan() {
+        assert!(ensure_finite(f64::NAN, "test").is_err());
+    }
+
+    #[test]
+    fn test_ensure_finite_inf() {
+        assert!(ensure_finite(f64::INFINITY, "test").is_err());
+    }
+
+    #[test]
+    fn test_require_finite_complex_nan_re() {
+        let z = hisab::Complex::new(f64::NAN, 1.0);
+        assert!(require_finite_complex(&z, "test").is_err());
+    }
+
+    #[test]
+    fn test_require_finite_complex_nan_im() {
+        let z = hisab::Complex::new(1.0, f64::INFINITY);
+        assert!(require_finite_complex(&z, "test").is_err());
+    }
+
+    #[test]
+    fn test_ensure_finite_complex_nan() {
+        let z = hisab::Complex::new(f64::NAN, 0.0);
+        assert!(ensure_finite_complex(z, "test").is_err());
+    }
+}
+
 /// Validate that a Complex input has finite real and imaginary parts.
 #[inline]
 pub fn require_finite_complex(

@@ -139,6 +139,13 @@ mod tests {
     }
 
     #[test]
+    fn test_non_flat_universe() {
+        let mut params = CosmologicalParameters::planck2018();
+        params.omega_k = 0.1;
+        assert!(!params.is_flat());
+    }
+
+    #[test]
     fn test_hubble_at_z0() {
         let params = CosmologicalParameters::planck2018();
         let h = hubble_parameter(&params, 0.0).unwrap();

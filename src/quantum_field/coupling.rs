@@ -315,6 +315,27 @@ mod tests {
     }
 
     #[test]
+    fn test_negative_alpha_qcd_numerical_rejected() {
+        assert!(running_coupling_qcd(-1.0, M_Z_GEV, 200.0, 6, 100).is_err());
+    }
+
+    #[test]
+    fn test_zero_steps_qcd_returns_initial() {
+        let a = running_coupling_qcd(ALPHA_S_MZ, M_Z_GEV, 200.0, 6, 0).unwrap();
+        assert!((a - ALPHA_S_MZ).abs() < 1e-15);
+    }
+
+    #[test]
+    fn test_analytic_qed_negative_rejected() {
+        assert!(running_coupling_qed_analytic(-1.0, M_Z_GEV, 200.0).is_err());
+    }
+
+    #[test]
+    fn test_analytic_qcd_negative_rejected() {
+        assert!(running_coupling_qcd_analytic(-1.0, M_Z_GEV, 200.0, 6).is_err());
+    }
+
+    #[test]
     fn test_coupling_analysis_serde() {
         let ca = CouplingAnalysis {
             alpha_at_scale: ALPHA,

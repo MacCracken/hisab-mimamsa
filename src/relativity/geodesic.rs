@@ -136,4 +136,19 @@ mod tests {
         // Should be on the order of ~200 microseconds for Sun
         assert!(delay > 1e-5 && delay < 1e-3);
     }
+
+    #[test]
+    fn test_effective_potential_null_geodesic() {
+        let rs = 2953.0;
+        let v = schwarzschild_effective_potential(rs, 1e10, 1e5, GeodesicType::Null).unwrap();
+        assert!(v > 0.0);
+    }
+
+    #[test]
+    fn test_effective_potential_spacelike_geodesic() {
+        let rs = 2953.0;
+        let v =
+            schwarzschild_effective_potential(rs, 1e10, 1e8, GeodesicType::Spacelike).unwrap();
+        assert!(v.is_finite());
+    }
 }

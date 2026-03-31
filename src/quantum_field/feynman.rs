@@ -344,6 +344,13 @@ mod tests {
     #[test]
     fn test_cross_section_negative_s_rejected() {
         assert!(total_cross_section_2to2_massless(1.0, -1.0).is_err());
+        assert!(total_cross_section_2to2_massless(1.0, 0.0).is_err());
+    }
+
+    #[test]
+    fn test_differential_cross_section_negative_s_rejected() {
+        assert!(differential_cross_section_2to2(1.0, -1.0).is_err());
+        assert!(differential_cross_section_2to2(1.0, 0.0).is_err());
     }
 
     #[test]

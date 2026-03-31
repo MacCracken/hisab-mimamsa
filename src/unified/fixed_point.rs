@@ -263,4 +263,16 @@ mod tests {
         assert!(cosmic_phase(&planck(), -2.0).is_err());
         assert!(entropy_ratio(&planck(), -2.0).is_err());
     }
+
+    #[test]
+    fn test_entropy_ratio_zero_density() {
+        let params = CosmologicalParameters {
+            h0: 67.4,
+            omega_m: 0.0,
+            omega_r: 0.0,
+            omega_lambda: 0.0,
+            omega_k: 0.0,
+        };
+        assert!(entropy_ratio(&params, 0.0).is_err());
+    }
 }

@@ -228,4 +228,22 @@ mod tests {
         let e = zero_point_energy_sum(1.0, 0).unwrap();
         assert!((e - 0.0).abs() < 1e-50);
     }
+
+    #[test]
+    fn test_zero_point_sum_negative_box_rejected() {
+        assert!(zero_point_energy_sum(-1.0, 10).is_err());
+        assert!(zero_point_energy_sum(0.0, 10).is_err());
+    }
+
+    #[test]
+    fn test_casimir_energy_negative_separation_rejected() {
+        assert!(casimir_energy_per_area(-1.0).is_err());
+        assert!(casimir_energy_per_area(0.0).is_err());
+    }
+
+    #[test]
+    fn test_regularized_vacuum_negative_cutoff_rejected() {
+        assert!(regularized_vacuum_energy_density(-1.0).is_err());
+        assert!(regularized_vacuum_energy_density(0.0).is_err());
+    }
 }

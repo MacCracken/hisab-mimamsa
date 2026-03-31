@@ -21,3 +21,18 @@ pub fn init_with_level(default_level: &str) {
         .with(filter)
         .try_init();
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_init() {
+        init();
+    }
+
+    #[test]
+    fn test_init_with_level() {
+        init_with_level("warn");
+    }
+}

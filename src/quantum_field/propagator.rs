@@ -229,4 +229,20 @@ mod tests {
         assert!(scalar_propagator_position_space(1.0, 0.1, 100, 50.0).is_err()); // not power of 2
         assert!(scalar_propagator_position_space(1.0, 0.1, 0, 50.0).is_err());
     }
+
+    #[test]
+    fn test_position_space_bad_emax_rejected() {
+        assert!(scalar_propagator_position_space(1.0, 0.1, 256, 0.0).is_err());
+        assert!(scalar_propagator_position_space(1.0, 0.1, 256, -1.0).is_err());
+    }
+
+    #[test]
+    fn test_fermion_propagator_matches_scalar() {
+        let m = M_ELECTRON_GEV;
+        let p = FourMomentum::new(m, 0.0, 0.0, 0.0).unwrap();
+        let scalar = scalar_propagator(&p, m, DEFAULT_EPSILON).unwrap();
+        let fermion = fermion_propagator_scalar(&p, m, DEFAULT_EPSILON).unwrap();
+        assert!((scalar.re - fermion.re).abs() < 1e-12);
+        assert!((scalar.im - fermion.im).abs() < 1e-12);
+    }
 }

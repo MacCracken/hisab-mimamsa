@@ -237,6 +237,11 @@ mod tests {
     }
 
     #[test]
+    fn test_four_vector_overflow_rejected() {
+        assert!(FourVector::new(1.5e154, 0.0, 0.0, 0.0).is_err());
+    }
+
+    #[test]
     fn test_boost_preserves_interval() {
         // Use natural units (ct, x in meters) for clean interval check
         let event = FourVector::new(3.0, 2.0, 0.0, 0.0).unwrap();
