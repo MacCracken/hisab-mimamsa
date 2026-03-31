@@ -97,7 +97,8 @@ impl FourMomentum {
         )
     }
 
-    /// Add two four-momenta (momentum conservation).
+    /// Add two four-momenta.
+    #[inline]
     pub fn add(&self, other: &Self) -> Result<Self, MimamsaError> {
         Self::new(
             self.e + other.e,
@@ -108,6 +109,7 @@ impl FourMomentum {
     }
 
     /// Subtract two four-momenta.
+    #[inline]
     pub fn sub(&self, other: &Self) -> Result<Self, MimamsaError> {
         Self::new(
             self.e - other.e,
@@ -118,6 +120,7 @@ impl FourMomentum {
     }
 
     /// Minkowski inner product: p · q = E_p E_q - **p** · **q** (mostly-minus).
+    #[inline]
     pub fn dot(&self, other: &Self) -> Result<f64, MimamsaError> {
         ensure_finite(
             self.e * other.e - self.px * other.px - self.py * other.py - self.pz * other.pz,

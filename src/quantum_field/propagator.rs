@@ -5,6 +5,7 @@
 //! in `hisab::Complex`.
 
 use hisab::Complex;
+use tracing::warn;
 
 use crate::error::{ensure_finite_complex, require_finite, MimamsaError};
 
@@ -29,6 +30,12 @@ pub fn scalar_propagator(
 ) -> Result<Complex, MimamsaError> {
     require_finite(mass_gev, "scalar_propagator")?;
     require_finite(epsilon, "scalar_propagator")?;
+    if epsilon <= 0.0 {
+        warn!(epsilon, "scalar_propagator: epsilon must be positive");
+        return Err(MimamsaError::Computation(
+            "scalar_propagator: epsilon must be positive".to_string(),
+        ));
+    }
     let p2 = p.invariant_mass_sq()?;
     let denom = Complex::new(p2 - mass_gev * mass_gev, epsilon);
     let i = Complex::new(0.0, 1.0);
@@ -63,6 +70,12 @@ pub fn gauge_boson_propagator(
     epsilon: f64,
 ) -> Result<Complex, MimamsaError> {
     require_finite(epsilon, "gauge_boson_propagator")?;
+    if epsilon <= 0.0 {
+        warn!(epsilon, "gauge_boson_propagator: epsilon must be positive");
+        return Err(MimamsaError::Computation(
+            "gauge_boson_propagator: epsilon must be positive".to_string(),
+        ));
+    }
     let k2 = k.invariant_mass_sq()?;
     let denom = Complex::new(k2, epsilon);
     let neg_i = Complex::new(0.0, -1.0);
@@ -176,6 +189,20 @@ mod tests {
     fn test_propagator_nan_rejected() {
         let p = FourMomentum::new(1.0, 0.0, 0.0, 0.0).unwrap();
         assert!(scalar_propagator(&p, f64::NAN, DEFAULT_EPSILON).is_err());
+    }
+
+    #[test]
+    fn test_epsilon_zero_rejected() {
+        let p = FourMomentum::new(1.0, 0.0, 0.0, 0.0).unwrap();
+        assert!(scalar_propagator(&p, 0.5, 0.0).is_err());
+        assert!(scalar_propagator(&p, 0.5, -1e-10).is_err());
+    }
+
+    #[test]
+    fn test_gauge_epsilon_zero_rejected() {
+        let k = FourMomentum::new(10.0, 5.0, 0.0, 0.0).unwrap();
+        assert!(gauge_boson_propagator(&k, 0.0).is_err());
+        assert!(gauge_boson_propagator(&k, -1.0).is_err());
     }
 
     #[test]

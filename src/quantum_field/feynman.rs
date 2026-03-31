@@ -11,6 +11,8 @@ use std::f64::consts::PI;
 use hisab::Complex;
 use serde::{Deserialize, Serialize};
 
+use tracing::warn;
+
 use crate::error::{ensure_finite, ensure_finite_complex, require_finite, MimamsaError};
 
 use super::propagator;
@@ -133,18 +135,21 @@ pub fn tree_level_amplitude(diagram: &TreeDiagram) -> Result<Complex, MimamsaErr
 }
 
 /// Mandelstam variable s = (p₁ + p₂)².
+#[inline]
 pub fn mandelstam_s(p1: &FourMomentum, p2: &FourMomentum) -> Result<f64, MimamsaError> {
     let total = p1.add(p2)?;
     total.invariant_mass_sq()
 }
 
 /// Mandelstam variable t = (p₁ - p₃)².
+#[inline]
 pub fn mandelstam_t(p1: &FourMomentum, p3: &FourMomentum) -> Result<f64, MimamsaError> {
     let diff = p1.sub(p3)?;
     diff.invariant_mass_sq()
 }
 
 /// Mandelstam variable u = (p₁ - p₄)².
+#[inline]
 pub fn mandelstam_u(p1: &FourMomentum, p4: &FourMomentum) -> Result<f64, MimamsaError> {
     let diff = p1.sub(p4)?;
     diff.invariant_mass_sq()
@@ -181,6 +186,12 @@ pub fn differential_cross_section_2to2(
 ) -> Result<f64, MimamsaError> {
     require_finite(amplitude_sq, "differential_cross_section_2to2")?;
     require_finite(s_mandelstam, "differential_cross_section_2to2")?;
+    if amplitude_sq < 0.0 {
+        warn!(amplitude_sq, "|M|² must be non-negative");
+        return Err(MimamsaError::Computation(
+            "differential_cross_section_2to2: |M|² must be non-negative".to_string(),
+        ));
+    }
     if s_mandelstam <= 0.0 {
         return Err(MimamsaError::Computation(
             "differential_cross_section_2to2: s must be positive".to_string(),
@@ -202,6 +213,12 @@ pub fn total_cross_section_2to2_massless(
 ) -> Result<f64, MimamsaError> {
     require_finite(amplitude_sq, "total_cross_section_2to2_massless")?;
     require_finite(s_mandelstam, "total_cross_section_2to2_massless")?;
+    if amplitude_sq < 0.0 {
+        warn!(amplitude_sq, "|M|² must be non-negative");
+        return Err(MimamsaError::Computation(
+            "total_cross_section_2to2_massless: |M|² must be non-negative".to_string(),
+        ));
+    }
     if s_mandelstam <= 0.0 {
         return Err(MimamsaError::Computation(
             "total_cross_section_2to2_massless: s must be positive".to_string(),
@@ -291,6 +308,12 @@ mod tests {
     #[test]
     fn test_cross_section_negative_s_rejected() {
         assert!(total_cross_section_2to2_massless(1.0, -1.0).is_err());
+    }
+
+    #[test]
+    fn test_cross_section_negative_amplitude_sq_rejected() {
+        assert!(total_cross_section_2to2_massless(-1.0, 100.0).is_err());
+        assert!(differential_cross_section_2to2(-0.5, 100.0).is_err());
     }
 
     #[test]

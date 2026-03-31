@@ -8,6 +8,7 @@
 use std::f64::consts::PI;
 
 use serde::{Deserialize, Serialize};
+use tracing::warn;
 
 use crate::error::{ensure_finite, require_finite, MimamsaError};
 
@@ -158,6 +159,7 @@ pub fn running_coupling_qed_analytic(
     let log_ratio = (mu_gev / mu_0_gev).ln();
     let denom = 1.0 - 2.0 * alpha_0 / (3.0 * PI) * log_ratio;
     if denom <= 0.0 {
+        warn!(alpha_0, mu_0_gev, mu_gev, denom, "QED Landau pole encountered");
         return Err(MimamsaError::Divergence {
             context: "running_coupling_qed_analytic".to_string(),
             detail: "Landau pole encountered".to_string(),
@@ -188,6 +190,7 @@ pub fn running_coupling_qcd_analytic(
     let log_ratio = (mu_gev / mu_0_gev).ln();
     let denom = 1.0 + b0 * alpha_s_0 * log_ratio / (2.0 * PI);
     if denom <= 0.0 {
+        warn!(alpha_s_0, mu_0_gev, mu_gev, n_f, denom, "QCD infrared Landau pole encountered");
         return Err(MimamsaError::Divergence {
             context: "running_coupling_qcd_analytic".to_string(),
             detail: "infrared Landau pole encountered".to_string(),
