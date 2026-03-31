@@ -11,12 +11,12 @@
 //!
 //! - [`relativity`] — General & special relativity: spacetime metrics, geodesics,
 //!   Lorentz transforms, gravitational lensing, black hole thermodynamics
-//! - [`quantum_field`] — Quantum field theory: field quantization, propagators,
-//!   Feynman diagrams, renormalization (extends kana beyond circuits)
-//! - [`cosmology`] — Friedmann equations, dark energy models, CMB power spectrum,
-//!   large-scale structure, cosmic expansion history
-//! - [`unified`] — Bridge between QFT and GR: effective field theory, holographic
-//!   principle, information-theoretic bounds, fixed point convergence
+//! - `quantum_field` *(feature `qft`)* — Quantum field theory: field quantization,
+//!   propagators, Feynman diagrams, renormalization (extends kana beyond circuits)
+//! - `cosmology` *(feature `cosmology`)* — Friedmann equations, dark energy models,
+//!   CMB power spectrum, large-scale structure, cosmic expansion history
+//! - `unified` *(feature `unified`)* — Bridge between QFT and GR: effective field
+//!   theory, holographic principle, information-theoretic bounds, fixed point convergence
 //!
 //! # Relationship to Other Crates
 //!
@@ -46,6 +46,35 @@
 //! The fixed point at zero (Unity) emerges from the cosmological model:
 //! at heat death / maximum entropy, all fields converge to ground state,
 //! all manifestation intensity → 0.0, all bridge outputs → identity element.
+//!
+//! # Examples
+//!
+//! Special relativity — muon time dilation at 0.994c:
+//!
+//! ```
+//! use hisab_mimamsa::relativity::lorentz;
+//!
+//! let gamma = lorentz::lorentz_factor(0.994 * lorentz::C).unwrap();
+//! assert!((gamma - 9.14).abs() < 0.1);
+//! ```
+//!
+//! General relativity — Schwarzschild radius of the Sun:
+//!
+//! ```
+//! use hisab_mimamsa::relativity::metric;
+//!
+//! let rs = metric::schwarzschild_radius(1.989e30);
+//! assert!((rs - 2953.0).abs() < 5.0);
+//! ```
+//!
+//! Black hole thermodynamics — Hawking temperature:
+//!
+//! ```
+//! use hisab_mimamsa::relativity::black_hole;
+//!
+//! let t = black_hole::hawking_temperature(1.989e30);
+//! assert!(t > 1e-9 && t < 1e-6);
+//! ```
 
 pub mod constants;
 pub mod error;

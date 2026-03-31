@@ -131,7 +131,8 @@ mod tests {
         let d1 = angular_diameter_distance(&params, 1.0, 1000);
         let d2 = angular_diameter_distance(&params, 1.6, 1000);
         let d3 = angular_diameter_distance(&params, 3.0, 1000);
-        // d2 should be close to maximum, d3 should decrease
+        // d2 near maximum: exceeds both d1 (pre-peak) and d3 (post-peak)
+        assert!(d2 > d1);
         assert!(d2 > d3);
     }
 
