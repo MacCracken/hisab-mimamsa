@@ -151,3 +151,40 @@ mod qft_serde {
         roundtrip_json_no_eq(&v, "Vertex");
     }
 }
+
+// ── Unified types ──────────────────────────────────────────────────────
+
+#[cfg(feature = "unified")]
+mod unified_serde {
+    use super::*;
+    use hisab_mimamsa::cosmology::friedmann::CosmologicalParameters;
+    use hisab_mimamsa::unified::fixed_point::{CosmicPhase, FixedPointState};
+    use hisab_mimamsa::unified::scale_bridge::BridgeOutput;
+
+    fn planck2018() -> CosmologicalParameters {
+        CosmologicalParameters::planck2018()
+    }
+
+    #[test]
+    fn roundtrip_cosmic_phase() {
+        for phase in [
+            CosmicPhase::RadiationDominated,
+            CosmicPhase::MatterDominated,
+            CosmicPhase::DarkEnergyDominated,
+        ] {
+            roundtrip_json(&phase, &format!("CosmicPhase::{phase:?}"));
+        }
+    }
+
+    #[test]
+    fn roundtrip_fixed_point_state() {
+        let state = FixedPointState::at_redshift(&planck2018(), 0.0).unwrap();
+        roundtrip_json_no_eq(&state, "FixedPointState");
+    }
+
+    #[test]
+    fn roundtrip_bridge_output() {
+        let output = BridgeOutput::at_redshift(&planck2018(), 0.0).unwrap();
+        roundtrip_json_no_eq(&output, "BridgeOutput");
+    }
+}

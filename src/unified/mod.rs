@@ -14,12 +14,12 @@
 //!   appears at every scale from Planck to cosmic — "as above, so below" as a
 //!   consequence of renormalization group flow.
 //!
-//! # Status
+//! # Submodules
 //!
-//! Scaffolded — core types defined. Implementation follows in v0.3.0+ (requires
-//! both relativity and qft modules to be mature).
+//! - [`holographic`] — Bekenstein and holographic entropy bounds, information content
+//! - [`fixed_point`] — Cosmic phase classification, manifestation intensity, Unity parameter
+//! - [`scale_bridge`] — RG running coupling wrappers, bhava Scale 6/7 bridge functions
 
-// Placeholder modules — to be filled after relativity + qft + cosmology are solid
-// pub mod holographic;
-// pub mod fixed_point;
-// pub mod scale_bridge;
+pub mod fixed_point;
+pub mod holographic;
+pub mod scale_bridge;

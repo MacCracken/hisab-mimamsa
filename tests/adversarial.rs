@@ -619,3 +619,114 @@ mod qft_fuzz {
         }
     }
 }
+
+// ── Unified ────────────────────────────────────────────────────────────
+
+#[cfg(feature = "unified")]
+mod unified_fuzz {
+    use super::*;
+    use hisab_mimamsa::unified::{holographic, fixed_point, scale_bridge};
+    use hisab_mimamsa::cosmology::friedmann::CosmologicalParameters;
+
+    fn params() -> CosmologicalParameters {
+        CosmologicalParameters::planck2018()
+    }
+
+    #[test]
+    fn fuzz_bekenstein_bound() {
+        for &h in &HOSTILE {
+            let r1 = holographic::bekenstein_bound(h, 1.0);
+            assert_result_sound(r1, &format!("bekenstein_bound({h}, 1.0)"));
+            let r2 = holographic::bekenstein_bound(1.0, h);
+            assert_result_sound(r2, &format!("bekenstein_bound(1.0, {h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_holographic_bound() {
+        for &h in &HOSTILE {
+            let r = holographic::holographic_bound(h);
+            assert_result_sound(r, &format!("holographic_bound({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_information_content_bits() {
+        for &h in &HOSTILE {
+            let r = holographic::information_content_bits(h);
+            assert_result_sound(r, &format!("information_content_bits({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_black_hole_information_bits() {
+        for &h in &HOSTILE {
+            let r = holographic::black_hole_information_bits(h);
+            assert_result_sound(r, &format!("black_hole_information_bits({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_cosmological_horizon_entropy() {
+        for &h in &HOSTILE {
+            let r = holographic::cosmological_horizon_entropy(h);
+            assert_result_sound(r, &format!("cosmological_horizon_entropy({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_entropy_ratio() {
+        for &h in &HOSTILE {
+            let r = fixed_point::entropy_ratio(&params(), h);
+            assert_result_sound(r, &format!("entropy_ratio({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_manifestation_intensity() {
+        for &h in &HOSTILE {
+            let r = fixed_point::manifestation_intensity(&params(), h);
+            assert_result_sound(r, &format!("manifestation_intensity({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_unity_parameter() {
+        for &h in &HOSTILE {
+            let r = fixed_point::unity_parameter(h);
+            assert_result_sound(r, &format!("unity_parameter({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_scale_coupling_qed() {
+        for &h in &HOSTILE {
+            let r = scale_bridge::scale_coupling_qed(h);
+            assert_result_sound(r, &format!("scale_coupling_qed({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_scale_coupling_qcd() {
+        for &h in &HOSTILE {
+            let r = scale_bridge::scale_coupling_qcd(h, 6);
+            assert_result_sound(r, &format!("scale_coupling_qcd({h}, 6)"));
+        }
+    }
+
+    #[test]
+    fn fuzz_bridge_scale_6() {
+        for &h in &HOSTILE {
+            let r = scale_bridge::bridge_scale_6(&params(), h);
+            assert_result_sound(r, &format!("bridge_scale_6({h})"));
+        }
+    }
+
+    #[test]
+    fn fuzz_bridge_scale_7() {
+        for &h in &HOSTILE {
+            let r = scale_bridge::bridge_scale_7(&params(), h);
+            assert_result_sound(r, &format!("bridge_scale_7({h})"));
+        }
+    }
+}

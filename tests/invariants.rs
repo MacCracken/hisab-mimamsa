@@ -354,3 +354,83 @@ mod qft_invariants {
         }
     }
 }
+
+// ── Unified invariants ─────────────────────────────────────────────────
+
+#[cfg(feature = "unified")]
+mod unified_invariants {
+    use std::f64::consts::PI;
+    use hisab_mimamsa::cosmology::friedmann::CosmologicalParameters;
+    use hisab_mimamsa::relativity::{black_hole, metric};
+    use hisab_mimamsa::unified::{holographic, fixed_point, scale_bridge};
+
+    const M_SUN: f64 = 1.989e30;
+
+    fn planck2018() -> CosmologicalParameters {
+        CosmologicalParameters::planck2018()
+    }
+
+    #[test]
+    fn holographic_bound_matches_bh_entropy() {
+        // For a Schwarzschild BH, holographic_bound(4*pi*r_s^2) == bekenstein_hawking_entropy(M)
+        let rs = metric::schwarzschild_radius(M_SUN).unwrap();
+        let area = 4.0 * PI * rs * rs;
+        let s_holo = holographic::holographic_bound(area).unwrap();
+        let s_bh = black_hole::bekenstein_hawking_entropy(M_SUN).unwrap();
+        let rel_diff = (s_holo - s_bh).abs() / s_bh;
+        assert!(
+            rel_diff < 1e-6,
+            "holographic_bound vs BH entropy: rel_diff = {rel_diff}"
+        );
+    }
+
+    #[test]
+    fn entropy_ratio_monotonic() {
+        let p = planck2018();
+        let r0 = fixed_point::entropy_ratio(&p, 0.0).unwrap();
+        let r1 = fixed_point::entropy_ratio(&p, 1.0).unwrap();
+        let r10 = fixed_point::entropy_ratio(&p, 10.0).unwrap();
+        let r100 = fixed_point::entropy_ratio(&p, 100.0).unwrap();
+        assert!(r0 > r1, "ratio at z=0 ({r0}) should exceed z=1 ({r1})");
+        assert!(r1 > r10, "ratio at z=1 ({r1}) should exceed z=10 ({r10})");
+        assert!(r10 > r100, "ratio at z=10 ({r10}) should exceed z=100 ({r100})");
+    }
+
+    #[test]
+    fn manifestation_intensity_complement_of_entropy_ratio() {
+        let p = planck2018();
+        for z in [0.0, 0.5, 1.0, 5.0, 50.0, 1100.0] {
+            let ratio = fixed_point::entropy_ratio(&p, z).unwrap();
+            let intensity = fixed_point::manifestation_intensity(&p, z).unwrap();
+            assert!(
+                (intensity - (1.0 - ratio)).abs() < 1e-12,
+                "intensity + ratio != 1 at z={z}: {intensity} + {ratio}"
+            );
+        }
+    }
+
+    #[test]
+    fn bridge_scale_6_bounded() {
+        let p = planck2018();
+        for z in [0.0, 0.5, 1.0, 5.0, 100.0, 1100.0] {
+            let val = scale_bridge::bridge_scale_6(&p, z).unwrap();
+            assert!(
+                (0.0..=1.0).contains(&val),
+                "bridge_scale_6({z}) = {val} out of [0, 1]"
+            );
+        }
+    }
+
+    #[test]
+    fn bridge_intensity_plus_unity_equals_one() {
+        let p = planck2018();
+        for z in [0.0, 0.5, 1.0, 5.0, 50.0, 1100.0] {
+            let intensity = fixed_point::manifestation_intensity(&p, z).unwrap();
+            let unity = fixed_point::unity_parameter(intensity).unwrap();
+            assert!(
+                (intensity + unity - 1.0).abs() < 1e-12,
+                "intensity + unity != 1 at z={z}: {intensity} + {unity}"
+            );
+        }
+    }
+}
