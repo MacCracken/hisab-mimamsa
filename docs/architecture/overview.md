@@ -119,8 +119,22 @@ bodh/bhava consume for cosmic-scale consciousness modulation
 Every public function returns `Result<T, MimamsaError>`. Three-layer validation:
 
 1. **Input**: `require_finite()` / `require_all_finite()` — rejects NaN/Inf
-2. **Domain**: Physics boundary checks with `tracing::warn` (superluminal, singularity, Landau pole)
+2. **Domain**: Physics boundary checks with `tracing::warn!` (superluminal, singularity, Landau pole)
 3. **Output**: `ensure_finite()` / `ensure_finite_complex()` — catches overflow, 0/0
+
+## Observability
+
+Structured tracing via the `tracing` crate at three levels:
+
+| Level | Usage | Example |
+|-------|-------|---------|
+| `error!` | Computational failures (RK4/FFT divergence) | `error!(%e, "RK4 integration failed")` |
+| `warn!` | Domain boundary violations (superluminal, singularity, Landau pole) | `warn!(v, "superluminal velocity rejected")` |
+| `#[instrument]` | Span instrumentation on ~50 public functions | Entry/exit tracing with arguments |
+
+Span levels: `trace` for individual computations, `debug` for higher-level aggregators (bridge outputs, integration results). Key aggregator functions (`BlackHoleProperties::from_mass`, `FixedPointState::at_redshift`, `BridgeOutput::at_redshift`) also log return values via `ret`.
+
+Enable with the `logging` feature and `HISAB_MIMAMSA_LOG` env var (e.g., `HISAB_MIMAMSA_LOG=debug`).
 
 ## Constants
 
@@ -137,7 +151,7 @@ Modules re-export relevant constants for backward compatibility (e.g., `lorentz:
 | `qft` | no | — | Quantum field theory |
 | `unified` | no | `cosmology`, `qft` | GR+QFT bridge, consciousness model |
 | `full` | no | all | Everything |
-| `logging` | no | — | tracing-subscriber init |
+| `logging` | no | — | Structured tracing (subscriber + env filter) |
 
 ## Consumers
 

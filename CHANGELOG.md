@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Error handling (`error.rs`): `MimamsaError` with 10 variants including `NonFinite`
 - Input validation: `require_finite`, `require_all_finite` on all public function inputs
 - Output validation: `ensure_finite`, `ensure_finite_complex` on all computed results
-- Structured logging: `tracing::warn` on physics-boundary violations (superluminal, singularity, Landau pole, negative ε)
+- Structured tracing: `warn!` on domain boundary violations, `error!` on computational failures (RK4, FFT), `#[instrument]` spans on ~50 public functions (`trace`/`debug` levels with argument capture and `ret` on key aggregators)
 
 #### Testing & Quality
 - 257 tests across 6 test suites: unit (133), adversarial fuzzing (65), integration (4), physical invariants (29), serde roundtrip (17), doc tests (9)

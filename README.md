@@ -117,7 +117,7 @@ println!("Unity parameter: {:.4}", bridge.unity_param); // ~0.685
 | `qft` | no | Quantum field theory: propagators, vacuum, couplings, Feynman |
 | `unified` | no | GR+QFT bridge, holographic principle, Scale 3-7 bridges |
 | `full` | no | Enables all features |
-| `logging` | no | `HISAB_MIMAMSA_LOG` env var logging |
+| `logging` | no | Structured tracing via `HISAB_MIMAMSA_LOG` env var |
 
 ```toml
 [dependencies]
@@ -182,10 +182,10 @@ Bridge functions are dependency-free (f64 primitives only) — see [ADR-003](doc
 
 | Module | Tests | Status |
 |--------|-------|--------|
-| relativity | 29 | Complete (SR + GR + BH + lensing) |
-| cosmology | 19 | Complete (Friedmann + expansion) |
-| quantum_field | 44 | Complete (propagators + vacuum + coupling + Feynman) |
-| unified | 42 | Complete (holographic + fixed point + Scale 3-7 bridges) |
+| relativity | 31 | Complete (SR + GR + BH + lensing) |
+| cosmology | 15 | Complete (Friedmann + expansion) |
+| quantum_field | 47 | Complete (propagators + vacuum + coupling + Feynman) |
+| unified | 40 | Complete (holographic + fixed point + Scale 3-7 bridges) |
 
 257 tests, 14 benchmarks, 4 examples, 9 doc tests, clippy clean, zero `unsafe`.
 

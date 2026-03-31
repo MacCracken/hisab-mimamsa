@@ -1,4 +1,6 @@
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use std::hint::black_box;
+
+use criterion::{Criterion, criterion_group, criterion_main};
 
 use hisab_mimamsa::relativity::black_hole;
 use hisab_mimamsa::relativity::geodesic;
