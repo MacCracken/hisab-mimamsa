@@ -1,0 +1,72 @@
+//! Gravitational lensing — Einstein rings, magnification, image distortion.
+
+use super::metric::{C, G};
+
+/// Einstein ring angular radius (radians).
+/// θ_E = √(4GM * D_ls / (c² * D_l * D_s))
+/// where D_l = lens distance, D_s = source distance, D_ls = lens-source distance.
+#[must_use]
+#[inline]
+pub fn einstein_ring_radius(mass_kg: f64, d_lens: f64, d_source: f64) -> f64 {
+    let d_ls = d_source - d_lens;
+    if d_ls <= 0.0 || d_lens <= 0.0 || d_source <= 0.0 {
+        return 0.0;
+    }
+    (4.0 * G * mass_kg * d_ls / (C * C * d_lens * d_source)).sqrt()
+}
+
+/// Point-source magnification for a point lens.
+/// μ = u² + 2 / (u * √(u² + 4))
+/// where u = angular separation / θ_E.
+#[must_use]
+#[inline]
+pub fn point_lens_magnification(u: f64) -> f64 {
+    if u.abs() < 1e-15 {
+        return f64::INFINITY; // perfect alignment → infinite magnification (point source)
+    }
+    let u2 = u * u;
+    (u2 + 2.0) / (u * (u2 + 4.0).sqrt())
+}
+
+/// Critical surface density for lensing (kg/m²).
+/// Σ_cr = c²D_s / (4πGD_lD_ls)
+#[must_use]
+#[inline]
+pub fn critical_surface_density(d_lens: f64, d_source: f64) -> f64 {
+    let d_ls = d_source - d_lens;
+    C * C * d_source / (4.0 * std::f64::consts::PI * G * d_lens * d_ls)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const M_SUN: f64 = 1.989e30;
+    const KPC: f64 = 3.086e19; // kiloparsec in meters
+
+    #[test]
+    fn test_einstein_ring_positive() {
+        let theta = einstein_ring_radius(M_SUN, 10.0 * KPC, 20.0 * KPC);
+        assert!(theta > 0.0);
+    }
+
+    #[test]
+    fn test_magnification_far_from_lens() {
+        // Far from lens (u >> 1): magnification → 1
+        let mu = point_lens_magnification(100.0);
+        assert!((mu - 1.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_magnification_near_einstein_ring() {
+        // At u = 1 (on Einstein ring): μ = 3/√5 ≈ 1.342
+        let mu = point_lens_magnification(1.0);
+        assert!((mu - 3.0 / 5.0_f64.sqrt()).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_critical_density_positive() {
+        let sigma = critical_surface_density(10.0 * KPC, 20.0 * KPC);
+        assert!(sigma > 0.0);
+    }
+}
