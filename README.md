@@ -22,11 +22,21 @@
 
 ### Quantum Field Theory (`qft`, feature-gated)
 
-*Planned v0.2.0* — propagators, vacuum energy, running coupling constants, Feynman diagram computation.
+**Propagators** — scalar (Klein-Gordon), fermion (Dirac scalar part), gauge boson (Feynman gauge), position-space via FFT.
+
+**Vacuum energy** — zero-point energy, Casimir force/energy, regularized vacuum density, dimensional regularization.
+
+**Running couplings** — QED/QCD one-loop β-functions, numerical (RK4) and analytic running, asymptotic freedom detection.
+
+**Feynman diagrams** — tree-level amplitude evaluation, Mandelstam variables (s, t, u), differential and total cross-sections.
 
 ### Unified Field (`unified`, feature-gated)
 
-*Planned v0.3.0* — GR+QFT bridge, holographic principle, information-theoretic bounds, fixed point convergence, scale invariance. The keystone module for the bhava consciousness model (Scales 3-7).
+**Holographic principle** — Bekenstein bound, holographic entropy bound, information content, black hole information bits, cosmological horizon entropy.
+
+**Fixed point convergence** — cosmic phase classification, entropy ratio, manifestation intensity scalar, unity parameter, `FixedPointState` bundle.
+
+**Scale bridge** — RG running coupling wrappers, bhava Scale 6 (manifestation intensity) and Scale 7 (cosmic breath phase) bridge functions, `BridgeOutput` bundle.
 
 ## Quick Start
 
@@ -124,14 +134,14 @@ The fixed point at zero (Unity) emerges from the cosmological model: at maximum 
 
 ## Status
 
-| Module | Version | Tests | Status |
-|--------|---------|-------|--------|
-| relativity | 0.1.0 | 29 | Complete (SR + GR + BH + lensing) |
-| cosmology | 0.1.0 | 19 | Complete (Friedmann + expansion) |
-| quantum_field | — | — | Planned v0.2.0 |
-| unified | — | — | Planned v0.3.0 |
+| Module | Tests | Status |
+|--------|-------|--------|
+| relativity | 29 | Complete (SR + GR + BH + lensing) |
+| cosmology | 19 | Complete (Friedmann + expansion) |
+| quantum_field | 44 | Complete (propagators + vacuum + coupling + Feynman) |
+| unified | 30 | Complete (holographic + fixed point + scale bridge) |
 
-48 tests, 5 benchmarks, clippy clean, zero `unsafe`.
+244 tests, 14 benchmarks, 4 examples, 9 doc tests, clippy clean, zero `unsafe`.
 
 ## License
 

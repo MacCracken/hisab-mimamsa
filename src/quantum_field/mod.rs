@@ -17,6 +17,42 @@
 //! - [`vacuum`] — Zero-point energy, Casimir effect, regularized vacuum energy
 //! - [`coupling`] — Running coupling constants, β-functions, asymptotic freedom
 //! - [`feynman`] — Feynman diagram types, tree-level amplitudes, cross-sections
+//!
+//! # Examples
+//!
+//! Scalar propagator near and far from the mass shell:
+//!
+//! ```
+//! use hisab_mimamsa::quantum_field::{FourMomentum, propagator};
+//!
+//! let m = 0.511e-3; // electron mass in GeV
+//! let p_on = FourMomentum::new(m, 0.0, 0.0, 0.0).unwrap();
+//! let p_off = FourMomentum::new(100.0, 0.0, 0.0, 0.0).unwrap();
+//!
+//! let on_shell = propagator::scalar_propagator(&p_on, m, propagator::DEFAULT_EPSILON).unwrap();
+//! let off_shell = propagator::scalar_propagator(&p_off, m, propagator::DEFAULT_EPSILON).unwrap();
+//! assert!(on_shell.abs() > off_shell.abs()); // pole dominates on-shell
+//! ```
+//!
+//! QCD asymptotic freedom — coupling decreases with energy:
+//!
+//! ```
+//! use hisab_mimamsa::quantum_field::coupling;
+//! use hisab_mimamsa::constants::{ALPHA_S_MZ, M_Z_GEV};
+//!
+//! let alpha_mz = ALPHA_S_MZ;
+//! let alpha_1tev = coupling::running_coupling_qcd_analytic(alpha_mz, M_Z_GEV, 1000.0, 6).unwrap();
+//! assert!(alpha_1tev < alpha_mz); // asymptotic freedom
+//! ```
+//!
+//! Casimir force between plates at 1 μm separation:
+//!
+//! ```
+//! use hisab_mimamsa::quantum_field::vacuum;
+//!
+//! let f = vacuum::casimir_force_per_area(1e-6).unwrap();
+//! assert!(f < 0.0); // attractive
+//! ```
 
 pub mod coupling;
 pub mod feynman;

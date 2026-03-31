@@ -42,7 +42,7 @@ pub fn beta_qcd_one_loop(alpha_s: f64, n_f: u8) -> Result<f64, MimamsaError> {
 
 /// Returns true if QCD is asymptotically free for the given number of flavors.
 ///
-/// Asymptotic freedom requires 33 - 2n_f > 0, i.e. n_f < 17.
+/// Asymptotic freedom requires 33 − 2n_f > 0, i.e. n_f < 17.
 /// The Standard Model has n_f ≤ 6.
 #[must_use]
 #[inline]

@@ -36,3 +36,18 @@ unified = ["cosmology", "qft"]
 [[bench]]
 name = "benchmarks"
 harness = false
+
+[[example]]
+name = "relativity"
+
+[[example]]
+name = "cosmology"
+required-features = ["cosmology"]
+
+[[example]]
+name = "qft"
+required-features = ["qft"]
+
+[[example]]
+name = "unified"
+required-features = ["unified"]
